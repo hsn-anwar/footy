@@ -8,6 +8,8 @@ class CountDownTimer extends StatelessWidget {
   final int mins;
   final int secs;
   final bool soundFlag;
+  final Function callSetState;
+  final onPrimaryTimerStopped;
 
   //  _primaryTimer passed to secondary CountDownTimer
   //  to check status of PrimaryCountDownTimer
@@ -19,6 +21,8 @@ class CountDownTimer extends StatelessWidget {
     @required this.secs,
     @required this.soundFlag,
     this.primaryTimer,
+    this.callSetState,
+    this.onPrimaryTimerStopped,
   });
 
   int getTimeInMilliseconds({int mins = 0, int secs = 0}) {
@@ -44,6 +48,22 @@ class CountDownTimer extends StatelessWidget {
           milliSecond: false,
           hours: false,
         );
+        //
+        // if (soundFlag) {
+        //   if (_liveCount >= _msecs) {
+        //     if (this.soundFlag && this.stopWatchTimer.isRunning) {
+        //       playSound();
+        //     }
+        //     this.stopWatchTimer.onExecute.add(StopWatchExecute.stop);
+        //   }
+        // } else {
+        //   if (_liveCount >= _msecs && this.primaryTimer.isRunning) {
+        //     this.stopWatchTimer.onExecute.add(StopWatchExecute.reset);
+        //     this.stopWatchTimer.onExecute.add(StopWatchExecute.start);
+        //   } else if (!this.primaryTimer.isRunning && _liveCount >= _msecs) {
+        //     this.stopWatchTimer.onExecute.add(StopWatchExecute.stop);
+        //   }
+        // }
 
         if (soundFlag) {
           if (_liveCount >= _msecs) {
@@ -51,15 +71,34 @@ class CountDownTimer extends StatelessWidget {
               playSound();
             }
             this.stopWatchTimer.onExecute.add(StopWatchExecute.stop);
+            this.primaryTimer.onExecute.add(StopWatchExecute.stop);
+            WidgetsBinding.instance
+                .addPostFrameCallback((_) => this.callSetState());
           }
         } else {
-          if (_liveCount >= _msecs && this.primaryTimer.isRunning) {
-            this.stopWatchTimer.onExecute.add(StopWatchExecute.reset);
-            this.stopWatchTimer.onExecute.add(StopWatchExecute.start);
-          } else if (!this.primaryTimer.isRunning && _liveCount >= _msecs) {
+          if (_liveCount >= _msecs) {
             this.stopWatchTimer.onExecute.add(StopWatchExecute.stop);
+
+            WidgetsBinding.instance
+                .addPostFrameCallback((_) => this.onPrimaryTimerStopped(true));
+            WidgetsBinding.instance
+                .addPostFrameCallback((_) => this.callSetState());
           }
         }
+
+        // if (soundFlag) {
+        //   if (_liveCount >= _msecs) {
+        //     if (this.soundFlag && this.stopWatchTimer.isRunning) {
+        //       playSound();
+        //     }
+        //     this.stopWatchTimer.onExecute.add(StopWatchExecute.stop);
+        //     this.primaryTimer.onExecute.add(StopWatchExecute.stop);
+        //   }
+        // } else {
+        //   if (_liveCount >= _msecs) {
+        //     this.stopWatchTimer.onExecute.add(StopWatchExecute.stop);
+        //   }
+        // }
 
         return Column(
           children: <Widget>[

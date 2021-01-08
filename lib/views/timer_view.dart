@@ -1,12 +1,16 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:footy/shared/constants.dart';
 import 'package:footy/widgets/count_down_timer.dart';
+import 'package:footy/widgets/error_notification.dart';
 import 'package:footy/widgets/time_picker.dart';
-import 'package:footy/widgets/timer_control_button.dart';
+import 'package:footy/widgets/timer_button.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
 
-// import 'package:numberpicker/numberpicker.dart';
-// import 'package:flutter_duration_picker/flutter_duration_picker.dart';
+enum ResumeMode {
+  user,
+  auto,
+}
 
 class TimerView extends StatefulWidget {
   static String id = 'timer_view';
@@ -18,14 +22,18 @@ class TimerView extends StatefulWidget {
 class _TimerViewState extends State<TimerView> with TickerProviderStateMixin {
   bool visibilityFlag1 = false;
   bool visibilityFlag2 = false;
+
   int primaryPresetSec = 00;
   int primaryPresetMin = 00;
 
   int secondaryPresetSec = 00;
   int secondaryPresetMin = 00;
 
-  bool _startFlag = false;
+  bool flag;
+  bool _startFlag = true;
   bool _pauseFlag = true;
+  bool _errorFlag = false;
+  ResumeMode _resumeMode = ResumeMode.auto;
 
   final StopWatchTimer _primaryTimer = StopWatchTimer();
   final StopWatchTimer _secondaryTimer = StopWatchTimer();
@@ -44,6 +52,12 @@ class _TimerViewState extends State<TimerView> with TickerProviderStateMixin {
   final _minFormKey2 = GlobalKey<FormState>();
   final _secFormKey2 = GlobalKey<FormState>();
 
+  void onPrimaryTimerStopped(bool changeFlag) {
+    setState(() {
+      _startFlag = changeFlag;
+    });
+  }
+
   void startTimers() {
     _primaryTimer.onExecute.add(StopWatchExecute.start);
     _secondaryTimer.onExecute.add(StopWatchExecute.start);
@@ -56,24 +70,87 @@ class _TimerViewState extends State<TimerView> with TickerProviderStateMixin {
 
   void resetPrimaryTimer() {
     _primaryTimer.onExecute.add(StopWatchExecute.reset);
-    _primaryTimer.onExecute.add(StopWatchExecute.stop);
   }
 
   void resetSecondaryTimer() {
     _secondaryTimer.onExecute.add(StopWatchExecute.reset);
-    _secondaryTimer.onExecute.add(StopWatchExecute.stop);
   }
 
-  void resetTimers() {
+  void resetAndStopPrimaryTimer() {
     _primaryTimer.onExecute.add(StopWatchExecute.reset);
     _primaryTimer.onExecute.add(StopWatchExecute.stop);
+  }
 
+  void resetAndStopSecondaryTimer() {
     _secondaryTimer.onExecute.add(StopWatchExecute.reset);
     _secondaryTimer.onExecute.add(StopWatchExecute.stop);
   }
 
+  void resetAndStopTimers() {
+    resetAndStopPrimaryTimer();
+    resetAndStopSecondaryTimer();
+  }
+
   int getTimeInMilliseconds({int hours = 0, int mins = 0, int secs = 0}) {
     return ((hours * 120) + (mins * 60) + secs) * 1000;
+  }
+
+  void startButtonFunctionality() {
+    setState(() {
+      if (primaryPresetMin > 0 ||
+          primaryPresetSec > 0 && secondaryPresetMin > 0 ||
+          secondaryPresetSec > 0) {
+        _errorFlag = false;
+        resetAndStopTimers();
+        _startFlag = false;
+        visibilityFlag1 = false;
+        visibilityFlag2 = false;
+        startTimers();
+      } else {
+        setState(() {
+          _errorFlag = true;
+        });
+      }
+    });
+  }
+
+  void pauseButtonFunctionality() {
+    if (_primaryTimer.isRunning && _secondaryTimer.isRunning) {
+      _errorFlag = false;
+      setState(() {
+        _resumeMode = ResumeMode.user;
+        stopTimers();
+        _pauseFlag = false;
+      });
+    }
+  }
+
+  void resumeButtonFunctionality() {
+    if (_resumeMode == ResumeMode.auto) {
+      setState(() {
+        _pauseFlag = true;
+        resetSecondaryTimer();
+        startTimers();
+      });
+    } else if (_resumeMode == ResumeMode.user) {
+      setState(() {
+        _pauseFlag = true;
+
+        _resumeMode = ResumeMode.auto;
+        startTimers();
+      });
+    }
+  }
+
+  void stopButtonFunctionality() {
+    setState(() {
+      _startFlag = !_startFlag;
+      resetAndStopTimers();
+    });
+  }
+
+  void callSetState() {
+    setState(() {});
   }
 
   @override
@@ -86,7 +163,7 @@ class _TimerViewState extends State<TimerView> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     SizeConfig().init(context);
-    // _initializeNumberPickers();
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Timer'.toUpperCase()),
@@ -95,6 +172,7 @@ class _TimerViewState extends State<TimerView> with TickerProviderStateMixin {
         width: SizeConfig.screenWidth,
         height: SizeConfig.screenHeight,
         child: SingleChildScrollView(
+          dragStartBehavior: DragStartBehavior.down,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -110,8 +188,9 @@ class _TimerViewState extends State<TimerView> with TickerProviderStateMixin {
                       onTap: () {
                         setState(() {
                           if (!_primaryTimer.isRunning &&
-                              !_secondaryTimer.isRunning) {
-                            resetPrimaryTimer();
+                              !_secondaryTimer.isRunning &&
+                              _startFlag) {
+                            resetAndStopPrimaryTimer();
 
                             visibilityFlag1 = !visibilityFlag1;
                             visibilityFlag2 = false;
@@ -135,7 +214,9 @@ class _TimerViewState extends State<TimerView> with TickerProviderStateMixin {
                               stopWatchTimer: _primaryTimer,
                               mins: primaryPresetMin,
                               secs: primaryPresetSec,
-                              soundFlag: true,
+                              soundFlag: false,
+                              callSetState: callSetState,
+                              onPrimaryTimerStopped: onPrimaryTimerStopped,
                             ),
                             Visibility(
                               visible: visibilityFlag1,
@@ -157,7 +238,7 @@ class _TimerViewState extends State<TimerView> with TickerProviderStateMixin {
                                       if (_minFormKey.currentState.validate() &&
                                           _secFormKey.currentState.validate()) {
                                         setState(() {
-                                          _startFlag = false;
+                                          // _startFlag = false;
 
                                           primaryPresetMin = int.parse(
                                               _minController.value.text);
@@ -189,8 +270,9 @@ class _TimerViewState extends State<TimerView> with TickerProviderStateMixin {
                       onTap: () {
                         setState(() {
                           if (!_primaryTimer.isRunning &&
-                              !_secondaryTimer.isRunning) {
-                            resetSecondaryTimer();
+                              !_secondaryTimer.isRunning &&
+                              _startFlag) {
+                            resetAndStopSecondaryTimer();
                             visibilityFlag2 = !visibilityFlag2;
                             visibilityFlag1 = false;
                           }
@@ -213,7 +295,8 @@ class _TimerViewState extends State<TimerView> with TickerProviderStateMixin {
                               stopWatchTimer: _secondaryTimer,
                               mins: secondaryPresetMin,
                               secs: secondaryPresetSec,
-                              soundFlag: false,
+                              callSetState: callSetState,
+                              soundFlag: true,
                               primaryTimer: _primaryTimer,
                             ),
                             Visibility(
@@ -238,7 +321,7 @@ class _TimerViewState extends State<TimerView> with TickerProviderStateMixin {
                                           _secFormKey2.currentState
                                               .validate()) {
                                         setState(() {
-                                          _startFlag = false;
+                                          // _startFlag = false;
                                           visibilityFlag2 = false;
                                           secondaryPresetMin = int.parse(
                                               _minController2.value.text);
@@ -259,68 +342,47 @@ class _TimerViewState extends State<TimerView> with TickerProviderStateMixin {
                 ),
               ),
               SizedBox(
-                height: SizeConfig.blockSizeVertical * 7,
+                height: SizeConfig.blockSizeVertical * 4,
               ),
-              ButtonBar(
-                alignment: MainAxisAlignment.center,
-                buttonMinWidth: SizeConfig.blockSizeHorizontal * 30,
-                children: _startFlag
-                    ? [
-                        _pauseFlag
-                            ? TimerControlButton(
+              _errorFlag ? ErrorNotification() : Container(),
+              SizedBox(
+                height: SizeConfig.blockSizeVertical * 3,
+              ),
+              _startFlag && !_primaryTimer.isRunning
+                  ? TimerButton(
+                      buttonLabel: 'Start',
+                      buttonColor: Colors.green,
+                      minWidth: 65,
+                      buttonFunction: () {
+                        startButtonFunctionality();
+                      })
+                  : ButtonBar(
+                      alignment: MainAxisAlignment.center,
+                      children: [
+                        _primaryTimer.isRunning
+                            ? TimerButton(
                                 buttonLabel: 'Pause',
                                 buttonColor: Colors.orange[900],
                                 buttonFunction: () {
-                                  if (_primaryTimer.isRunning &&
-                                      _secondaryTimer.isRunning) {
-                                    setState(() {
-                                      stopTimers();
-                                      _pauseFlag = false;
-                                    });
-                                  }
+                                  pauseButtonFunctionality();
                                 },
                               )
-                            : TimerControlButton(
+                            : TimerButton(
                                 buttonLabel: 'Resume',
                                 buttonColor: Colors.green,
                                 buttonFunction: () {
-                                  setState(() {
-                                    startTimers();
-                                    _pauseFlag = true;
-                                  });
-                                }),
-                        SizedBox(
-                          width: SizeConfig.blockSizeHorizontal * 1,
-                        ),
-                        TimerControlButton(
+                                  resumeButtonFunctionality();
+                                },
+                              ),
+                        TimerButton(
                           buttonLabel: 'Stop',
                           buttonColor: Colors.red[900],
                           buttonFunction: () {
-                            setState(() {
-                              _startFlag = !_startFlag;
-                              resetTimers();
-                            });
+                            stopButtonFunctionality();
                           },
                         )
-                      ]
-                    : [
-                        ButtonTheme(
-                          minWidth: SizeConfig.blockSizeHorizontal * 65,
-                          child: TimerControlButton(
-                            buttonLabel: 'Start',
-                            buttonColor: Colors.green,
-                            buttonFunction: () {
-                              setState(() {
-                                _startFlag = true;
-                                visibilityFlag1 = false;
-                                visibilityFlag2 = false;
-                                startTimers();
-                              });
-                            },
-                          ),
-                        ),
                       ],
-              ),
+                    ),
             ],
           ),
         ),
@@ -328,75 +390,3 @@ class _TimerViewState extends State<TimerView> with TickerProviderStateMixin {
     );
   }
 }
-
-//
-// class Timer extends StatefulWidget {
-//   @override
-//   _TimerState createState() => _TimerState();
-// }
-//
-// class _TimerState extends State<Timer> {
-//   @override
-//   Widget build(BuildContext context) {
-//     return               Column(
-//       children: [
-//         GestureDetector(
-//           onTap: () {
-//             setState(() {
-//               visibilityFlag1 = !visibilityFlag1;
-//             });
-//           },
-//           child: Container(
-//             width: SizeConfig.screenWidth,
-//             child: Column(
-//               children: [
-//                 Text(
-//                   'Game Duration'.toUpperCase(),
-//                   style: kLabelStyle,
-//                 ),
-//                 CountDownTimer(
-//                   stopWatchTimer: _primaryTimer,
-//                   mins: primaryPresetMin,
-//                   secs: primaryPresetSec,
-//                   soundFlag: true,
-//                 ),
-//                 Visibility(
-//                   visible: visibilityFlag1,
-//                   child: Column(
-//                     children: [
-//                       TimePicker(
-//                         minController: _minController,
-//                         secController: _secController,
-//                         minFormKey: _minFormKey,
-//                         secFormKey: _secFormKey,
-//                       ),
-//                       RaisedButton(
-//                         color: Colors.green,
-//                         child: Text(
-//                           'Set Timer',
-//                           style: kButtonTextStyle,
-//                         ),
-//                         onPressed: () {
-//                           if (_minFormKey.currentState.validate() &&
-//                               _secFormKey.currentState.validate()) {
-//                             setState(() {
-//                               primaryPresetMin = int.parse(
-//                                   _minController.value.text);
-//                               primaryPresetSec = int.parse(
-//                                   _secController.value.text);
-//                               visibilityFlag1 = false;
-//                             });
-//                           }
-//                         },
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ),
-//       ],
-//     );
-//   }
-// }
