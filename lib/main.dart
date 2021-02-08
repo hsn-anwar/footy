@@ -21,12 +21,10 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   final Auth _auth = Auth();
-  final GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        key: scaffoldKey,
         title: 'Footy',
         theme: ThemeData(
           primarySwatch: Colors.green,

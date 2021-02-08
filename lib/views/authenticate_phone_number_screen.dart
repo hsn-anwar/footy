@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:footy/services/auth_base.dart';
 import 'package:footy/views/otp_screen.dart';
 import 'file:///E:/Projects/footy/lib/models/otp_data.dart';
@@ -45,6 +46,7 @@ class _AuthenticatePhoneNumberScreenState
             Scaffold.of(context)
                 .showSnackBar(SnackBar(content: Text('Phone number linked.')));
           },
+
           // Handle failure events such as invalid phone numbers or whether the SMS quota has been exceeded.
           verificationFailed: (FirebaseAuthException e) {
             print(phoneNumber);
@@ -98,11 +100,22 @@ class _AuthenticatePhoneNumberScreenState
     size: 50.0,
   );
   bool _isLoading = false;
+
+  bool isPhoneNumberLinked() {
+    var number = _firebaseAuth.currentUser.phoneNumber;
+    if (number != null) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    FocusScopeNode currentFocus = FocusScope.of(context);
+
     return GestureDetector(
       onTap: () {
-        FocusScopeNode currentFocus = FocusScope.of(context);
         if (!currentFocus.hasPrimaryFocus) {
           currentFocus.unfocus();
         }
@@ -121,7 +134,6 @@ class _AuthenticatePhoneNumberScreenState
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(_isLoading.toString()),
                     Padding(
                       padding: const EdgeInsets.only(bottom: 28.0),
                       child: Text(
@@ -138,7 +150,9 @@ class _AuthenticatePhoneNumberScreenState
                             print(value);
                             countryCode = value.toString();
                           },
-                          favorite: <String>['PAK'],
+                          onInit: (code) {
+                            countryCode = code.toString();
+                          },
                           initialSelection: 'Pakistan',
                           showCountryOnly: false,
                           showOnlyCountryWhenClosed: false,
@@ -183,8 +197,14 @@ class _AuthenticatePhoneNumberScreenState
                           color: Colors.green[400],
                           onPressed: () {
                             if (_formKey.currentState.validate()) {
-                              validatePhoneNumber(context,
-                                  '$countryCode ${_numberController.value.text}');
+                              currentFocus.unfocus();
+                              bool _isLinked = isPhoneNumberLinked();
+                              print(_isLinked);
+                              if (!_isLinked) {
+                                navigateToOtpWithPhoneNumber();
+                              } else {
+                                showError();
+                              }
                             }
                           },
                           child: Text(
@@ -194,6 +214,22 @@ class _AuthenticatePhoneNumberScreenState
                         ),
                       );
                     }),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: RaisedButton(
+                        color: Colors.green[400],
+                        onPressed: () {
+                          if (_formKey.currentState.validate()) {
+                            _firebaseAuth.currentUser
+                                .unlink(PhoneAuthProvider.PROVIDER_ID);
+                          }
+                        },
+                        child: Text(
+                          'Unlink phone number',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -202,5 +238,24 @@ class _AuthenticatePhoneNumberScreenState
         ),
       ),
     );
+  }
+
+  void navigateToOtpWithPhoneNumber() {
+    Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+            builder: (context) => OtpScreen(
+                phoneNumber: '$countryCode ${_numberController.value.text}')));
+  }
+
+  void showError() {
+    Fluttertoast.showToast(
+        msg: "${'A phone number has already been linked to this account.'}",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0);
   }
 }
