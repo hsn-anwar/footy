@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:footy/shared/constants.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class QrScreen extends StatelessWidget {
@@ -6,14 +7,13 @@ class QrScreen extends StatelessWidget {
   final String userId = 'FX2sNpNJ3meRmib2QmO0jyM9K542';
   @override
   Widget build(BuildContext context) {
-    double height = MediaQuery.of(context).size.height;
-    double width = MediaQuery.of(context).size.width;
+    SizeConfig().init(context);
     return Scaffold(
       appBar: AppBar(
         title: Text('QR Code'),
       ),
       body: Container(
-        width: width,
+        width: SizeConfig.screenWidth,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
