@@ -8,8 +8,8 @@ import 'package:footy/views/login_screen.dart';
 import 'package:footy/views/qr_screen.dart';
 import 'package:footy/views/result_screen.dart';
 import 'package:footy/views/scan_qr_screen.dart';
-import 'package:footy/views/timer_view.dart';
-import 'views/opt_screen.dart';
+import 'package:footy/views/timer_screen.dart';
+import 'views/otp_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
           AuthenticatePhoneNumberScreen.id: (context) =>
               AuthenticatePhoneNumberScreen(),
           HomeScreen.id: (context) => HomeScreen(),
-          OTPScreen.id: (context) => OTPScreen(),
+          OtpScreen.id: (context) => OtpScreen(),
           TimerView.id: (context) => TimerView(),
           QrScreen.id: (context) => QrScreen(),
           ScanQrScreen.id: (context) => ScanQrScreen(),

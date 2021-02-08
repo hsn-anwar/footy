@@ -1,18 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:footy/views/otp_data.dart';
+import 'file:///E:/Projects/footy/lib/models/otp_data.dart';
 import 'package:pinput/pin_put/pin_put.dart';
 import 'package:pinput/pin_put/pin_put_state.dart';
 
-class OTPScreen extends StatefulWidget {
+class OtpScreen extends StatefulWidget {
   static final String id = 'otp_screen';
 
   @override
-  _OTPScreenState createState() => _OTPScreenState();
+  _OtpScreenState createState() => _OtpScreenState();
 }
 
-class _OTPScreenState extends State<OTPScreen> {
+class _OtpScreenState extends State<OtpScreen> {
   final TextEditingController _pinPutController = TextEditingController();
   final FocusNode _pinPutFocusNode = FocusNode();
 
@@ -53,6 +53,11 @@ class _OTPScreenState extends State<OTPScreen> {
       print(e.message);
       Scaffold.of(context).showSnackBar(SnackBar(content: Text(e.message)));
     }
+    Future.delayed(const Duration(seconds: 4), () {
+      setState(() {
+        Navigator.pop(context);
+      });
+    });
   }
 
   @override
