@@ -8,6 +8,7 @@ import 'package:footy/shared/constants.dart';
 import 'dart:async';
 import 'dart:io' show Platform;
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:flutter/services.dart';
 
 class OtpScreen extends StatefulWidget {
   static final String id = 'otp_screen';
@@ -259,6 +260,10 @@ class _OtpScreenState extends State<OtpScreen> {
                     margin: const EdgeInsets.all(20.0),
                     padding: const EdgeInsets.all(20.0),
                     child: PinPut(
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
                       fieldsCount: 6,
                       onSubmit: (String pin) {
                         setState(() {
