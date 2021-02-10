@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:footy/views/home_screen.dart';
 import 'file:///E:/Projects/footy/lib/models/otp_data.dart';
 import 'package:pinput/pin_put/pin_put.dart';
 import 'package:pinput/pin_put/pin_put_state.dart';
@@ -52,7 +53,7 @@ class _OtpScreenState extends State<OtpScreen> {
     User user = _firebaseAuth.currentUser;
     DocumentReference documentReference =
         _firestore.collection('users').doc(user.uid);
-
+    Navigator.pushReplacementNamed(context, HomeScreen.id, arguments: true);
     try {
       await _firebaseAuth.currentUser.linkWithCredential(credentials);
       documentReference.update({
@@ -60,7 +61,7 @@ class _OtpScreenState extends State<OtpScreen> {
         'isPhoneNumberVerified': true,
       });
 
-      print('verified and linked');
+      print('auto validating complete');
     } on FirebaseAuthException catch (e) {
       print(e.code);
       print(e.message);
@@ -82,6 +83,7 @@ class _OtpScreenState extends State<OtpScreen> {
         'isPhoneNumberVerified': true,
       });
       print('verified and linked');
+      Navigator.pushReplacementNamed(context, HomeScreen.id, arguments: true);
     } on FirebaseAuthException catch (e) {
       if (e.code == 'invalid-verification-code') {
         print(e.code);
@@ -151,6 +153,16 @@ class _OtpScreenState extends State<OtpScreen> {
               });
             });
             print('Invalid phone number');
+          } else if (e.code == 'too-many-requests') {
+            print(e.code);
+            Fluttertoast.showToast(
+                msg: "Too many requests has been sent. Please try again later.",
+                toastLength: Toast.LENGTH_LONG,
+                gravity: ToastGravity.BOTTOM,
+                timeInSecForIosWeb: 1,
+                backgroundColor: Colors.red,
+                textColor: Colors.white,
+                fontSize: 16.0);
           } else {
             setState(() {
               error = e.message;
@@ -204,6 +216,8 @@ class _OtpScreenState extends State<OtpScreen> {
       },
     );
   }
+
+  bool _isSubmitted = false;
 
   String error = '';
   @override

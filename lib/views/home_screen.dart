@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:footy/services/auth_base.dart';
 import 'package:footy/services/auth_root.dart';
 import 'package:footy/shared/constants.dart';
@@ -21,8 +22,45 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  bool _checkIfPhoneLinked = true;
+  showSuccessPhoneLinked() {
+    Fluttertoast.showToast(
+        msg: "${'Phone number has been linked to your account'}",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.white,
+        textColor: Colors.black,
+        fontSize: 16.0);
+  }
+
+  showErrorPhoneLinked() {
+    Fluttertoast.showToast(
+        msg: "${'Phone number could not be linked to your account'}",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final bool _isPhoneLinked = ModalRoute.of(context).settings.arguments;
+
+    if (_isPhoneLinked != null) {
+      print(_isPhoneLinked);
+      if (_checkIfPhoneLinked) {
+        _checkIfPhoneLinked = false;
+        if (_isPhoneLinked) {
+          showSuccessPhoneLinked();
+        } else {
+          showErrorPhoneLinked();
+        }
+      }
+    }
+
     SizeConfig().init(context);
     return Scaffold(
         appBar: AppBar(
