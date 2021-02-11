@@ -58,6 +58,13 @@ class CountDownTimer extends StatelessWidget {
           hours: false,
           minute: false,
         );
+        String minutesOnly = StopWatchTimer.getDisplayTime(
+          _timerValue,
+          milliSecond: false,
+          hours: false,
+          minute: true,
+          second: false,
+        );
         //
         // if (soundFlag) {
         //   if (_liveCount >= _msecs) {
@@ -111,6 +118,8 @@ class CountDownTimer extends StatelessWidget {
         // }
 
         return radius == null
+            //  DON'T Change this
+
             ? Column(
                 children: <Widget>[
                   CircularPercentIndicator(
@@ -128,15 +137,15 @@ class CountDownTimer extends StatelessWidget {
                 ],
               )
             : Column(
+                // Change this
                 children: <Widget>[
                   CircularPercentIndicator(
-                    progressColor: Colors.green,
+                    progressColor: Colors.grey,
                     backgroundColor: Colors.red[400],
                     radius: radius,
-                    percent:
-                        _liveCount / _msecs > 1 ? 1 : _liveCount / (_msecs),
+                    percent: _liveCount / _msecs > 1 ? 1 : _liveCount / _msecs,
                     center: Text(
-                      '${secondsOnly == '00' ? '60' : secondsOnly}\nsecs',
+                      '${minutesOnly == '01' ? '60' : secondsOnly}\nsecs',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: this.fontSize,

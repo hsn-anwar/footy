@@ -134,6 +134,59 @@ class _OtpScreenState extends State<OtpScreen> {
     }
   }
 
+  failedVerification(FirebaseAuthException e) {
+    if (e.code == 'invalid-phone-number') {
+      setState(() {
+        error = e.message;
+        setState(() {
+          error = e.message;
+        });
+      });
+      print('Invalid phone number');
+    } else if (e.code == 'too-many-requests') {
+      print(e.code);
+      Fluttertoast.showToast(
+          msg: "Too many requests has been sent. Please try again later.",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0);
+    } else if (e.code == 'credential-already-in-use') {
+      print(e.code);
+      Fluttertoast.showToast(
+          msg: "This number has already been linked to an account",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0);
+    } else {
+      print('Uncaught exception');
+      print('Failed with error code: ${e.code}');
+      Fluttertoast.showToast(
+          msg: "${e.message}",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0);
+
+      //TODO: Remove this
+      setState(() {
+        error = e.message;
+      });
+      print(e.code);
+      setState(() {
+        error = e.message;
+      });
+      print(e.message);
+    }
+  }
+
   validatePhone() async {
     // TODO: Check if user or number already linked
     print('In validating');
@@ -147,34 +200,7 @@ class _OtpScreenState extends State<OtpScreen> {
         },
         verificationFailed: (FirebaseAuthException e) {
           print('Verification failed');
-          if (e.code == 'invalid-phone-number') {
-            setState(() {
-              error = e.message;
-              setState(() {
-                error = e.message;
-              });
-            });
-            print('Invalid phone number');
-          } else if (e.code == 'too-many-requests') {
-            print(e.code);
-            Fluttertoast.showToast(
-                msg: "Too many requests has been sent. Please try again later.",
-                toastLength: Toast.LENGTH_LONG,
-                gravity: ToastGravity.BOTTOM,
-                timeInSecForIosWeb: 1,
-                backgroundColor: Colors.red,
-                textColor: Colors.white,
-                fontSize: 16.0);
-          } else {
-            setState(() {
-              error = e.message;
-            });
-            print(e.code);
-            setState(() {
-              error = e.message;
-            });
-            print(e.message);
-          }
+          failedVerification(e);
         },
         codeSent: (String verificationCode, int resendToken) async {
           print('In code sent');
@@ -315,7 +341,7 @@ class _OtpScreenState extends State<OtpScreen> {
                   //     : Text(
                   //         'Didn\'t receive code?\nYou can resend code in: \t $resendCodeTime secs'),
                   Text(
-                    error,
+                    error.toString(),
                     style: TextStyle(fontSize: 22.0),
                   ),
                   !_showResendButton
