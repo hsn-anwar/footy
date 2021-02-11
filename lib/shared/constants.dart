@@ -4,6 +4,7 @@ const String kTimeOutSound = 'assets/sounds/referee_whistle.mp3';
 
 const kLabelStyle = TextStyle(fontSize: 17);
 const kButtonTextStyle = TextStyle(color: Colors.white, fontSize: 17);
+const kResendLabelStyle = TextStyle(color: Colors.black, fontSize: 17);
 
 InputDecoration kInputDecoration = InputDecoration(
   fillColor: Colors.white,

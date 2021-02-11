@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:footy/views/home_screen.dart';
+import 'package:footy/widgets/count_down_timer.dart';
 import 'file:///E:/Projects/footy/lib/models/otp_data.dart';
 import 'package:pinput/pin_put/pin_put.dart';
 import 'package:pinput/pin_put/pin_put_state.dart';
@@ -10,6 +11,7 @@ import 'dart:async';
 import 'dart:io' show Platform;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/services.dart';
+import 'package:stop_watch_timer/stop_watch_timer.dart';
 
 class OtpScreen extends StatefulWidget {
   static final String id = 'otp_screen';
@@ -195,35 +197,15 @@ class _OtpScreenState extends State<OtpScreen> {
     }
   }
 
-  void startTimer() {
-    Timer _timer;
-    const oneSec = const Duration(seconds: 1);
-    _timer = new Timer.periodic(
-      oneSec,
-      (Timer timer) {
-        if (resendCodeTime == 1) {
-          setState(() {
-            _showResendButton = true;
-            timer.cancel();
-          });
-        } else {
-          if (mounted) {
-            setState(() {
-              resendCodeTime--;
-            });
-          }
-        }
-      },
-    );
-  }
+  final StopWatchTimer timerController = StopWatchTimer();
 
   bool _isSubmitted = false;
 
   String error = '';
   @override
   void initState() {
+    timerController.onExecute.add(StopWatchExecute.start);
     validatePhone();
-    startTimer();
     // initializeAutoValidatorFlag();
     super.initState();
   }
@@ -244,19 +226,34 @@ class _OtpScreenState extends State<OtpScreen> {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
+                  SizedBox(
+                    height: 100.0,
+                  ),
                   Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 8.0),
                     child: Text(
                       'An OTP code has been sent to\t\t${widget.phoneNumber} for verification',
-                      style: TextStyle(fontSize: 22),
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                        shadows: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.5),
+                            spreadRadius: 5,
+                            blurRadius: 7,
+                            offset: Offset(0, 3), // changes position of shadow
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
                     child: Text(
-                      'PIN  INPUT',
+                      'Enter  PIN here',
                       style: TextStyle(
-                        fontSize: 32,
+                        fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: Colors.green,
                         shadows: [
@@ -272,7 +269,7 @@ class _OtpScreenState extends State<OtpScreen> {
                   ),
                   Container(
                     margin: const EdgeInsets.all(20.0),
-                    padding: const EdgeInsets.all(20.0),
+                    padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 8.0),
                     child: PinPut(
                       keyboardType: TextInputType.number,
                       inputFormatters: <TextInputFormatter>[
@@ -282,6 +279,7 @@ class _OtpScreenState extends State<OtpScreen> {
                       onSubmit: (String pin) {
                         setState(() {
                           _pinCode = pin;
+                          // timerController.onExecute.add(StopWatchExecute.stop);
                           linkNumber();
                         });
                         // validateAndLink(context, otpData.verificationId,
@@ -305,21 +303,54 @@ class _OtpScreenState extends State<OtpScreen> {
                       followingFieldDecoration: _pinPutDecoration,
                     ),
                   ),
-                  _showResendButton
-                      ? RaisedButton(
-                          color: Colors.green,
+                  // _showResendButton
+                  //     ? RaisedButton(
+                  //         color: Colors.green,
+                  //         child: Text(
+                  //           'Resend code',
+                  //           style: TextStyle(color: Colors.white),
+                  //         ),
+                  //         onPressed: resendSmsFunctionality,
+                  //       )
+                  //     : Text(
+                  //         'Didn\'t receive code?\nYou can resend code in: \t $resendCodeTime secs'),
+                  Text(
+                    error,
+                    style: TextStyle(fontSize: 22.0),
+                  ),
+                  !_showResendButton
+                      ? Column(
+                          children: [
+                            Text(
+                              'Didn\'t receive a code yet?',
+                              style: kResendLabelStyle,
+                            ),
+                            SizedBox(height: 4),
+                            Text('You can resend SMS for a code in',
+                                style: kResendLabelStyle),
+                            SizedBox(height: 8),
+                            Container(
+                              decoration: BoxDecoration(),
+                              child: CountDownTimer(
+                                stopWatchTimer: timerController,
+                                mins: 0,
+                                secs: 60,
+                                soundFlag: false,
+                                onPrimaryTimerStopped: onPrimaryTimerStopped,
+                                callSetState: callSetState,
+                                radius: 60,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
+                        )
+                      : ElevatedButton(
                           child: Text(
                             'Resend code',
                             style: TextStyle(color: Colors.white),
                           ),
                           onPressed: resendSmsFunctionality,
-                        )
-                      : Text(
-                          'Didn\'t receive code?\nYou can resend code in: \t $resendCodeTime secs'),
-                  Text(
-                    error,
-                    style: TextStyle(fontSize: 22.0),
-                  ),
+                        ),
                 ],
               );
             },
@@ -329,12 +360,23 @@ class _OtpScreenState extends State<OtpScreen> {
     );
   }
 
+  void onPrimaryTimerStopped(bool changeFlag) {
+    setState(() {
+      _showResendButton = true;
+    });
+  }
+
+  void callSetState() {
+    setState(() {});
+  }
+
   void resendSmsFunctionality() {
     setState(() {
+      timerController.onExecute.add(StopWatchExecute.reset);
+      timerController.onExecute.add(StopWatchExecute.start);
       _showResendButton = false;
       resendCodeTime = 60;
     });
-    startTimer();
     validatePhone();
   }
 }

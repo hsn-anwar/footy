@@ -10,6 +10,8 @@ class CountDownTimer extends StatelessWidget {
   final bool soundFlag;
   final Function callSetState;
   final onPrimaryTimerStopped;
+  final double radius;
+  final double fontSize;
 
   //  _primaryTimer passed to secondary CountDownTimer
   //  to check status of PrimaryCountDownTimer
@@ -23,6 +25,8 @@ class CountDownTimer extends StatelessWidget {
     this.primaryTimer,
     this.callSetState,
     this.onPrimaryTimerStopped,
+    this.radius,
+    this.fontSize,
   });
 
   int getTimeInMilliseconds({int mins = 0, int secs = 0}) {
@@ -47,6 +51,12 @@ class CountDownTimer extends StatelessWidget {
           _timerValue,
           milliSecond: false,
           hours: false,
+        );
+        String secondsOnly = StopWatchTimer.getDisplayTime(
+          _timerValue,
+          milliSecond: false,
+          hours: false,
+          minute: false,
         );
         //
         // if (soundFlag) {
@@ -100,22 +110,43 @@ class CountDownTimer extends StatelessWidget {
         //   }
         // }
 
-        return Column(
-          children: <Widget>[
-            CircularPercentIndicator(
-              radius: 140,
-              percent: _liveCount / _msecs > 1 ? 1 : _liveCount / _msecs,
-              center: Text(
-                displayTimer,
-                style: TextStyle(
-                  fontSize: 40,
-                  fontFamily: 'Helvetica',
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        );
+        return radius == null
+            ? Column(
+                children: <Widget>[
+                  CircularPercentIndicator(
+                    radius: radius ?? 140,
+                    percent: _liveCount / _msecs > 1 ? 1 : _liveCount / _msecs,
+                    center: Text(
+                      displayTimer,
+                      style: TextStyle(
+                        fontSize: this.fontSize ?? 40,
+                        fontFamily: 'Helvetica',
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            : Column(
+                children: <Widget>[
+                  CircularPercentIndicator(
+                    progressColor: Colors.green,
+                    backgroundColor: Colors.red[400],
+                    radius: radius,
+                    percent:
+                        _liveCount / _msecs > 1 ? 1 : _liveCount / (_msecs),
+                    center: Text(
+                      '${secondsOnly == '00' ? '60' : secondsOnly}\nsecs',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: this.fontSize,
+                        fontFamily: 'Helvetica',
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              );
       },
     );
   }
