@@ -9,6 +9,7 @@ import 'package:footy/services/auth_base.dart';
 import 'package:footy/views/otp_screen.dart';
 import 'file:///E:/Projects/footy/lib/models/otp_data.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:flutter/services.dart';
 
 class AuthenticatePhoneNumberScreen extends StatefulWidget {
   static final String id = 'authenticate_phone_number_screen';
@@ -168,6 +169,10 @@ class _AuthenticatePhoneNumberScreenState
                           child: Form(
                             key: _formKey,
                             child: TextFormField(
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
                               validator: (value) {
                                 if (value.isEmpty) {
                                   return 'Field cannot be empty';
