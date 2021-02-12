@@ -76,72 +76,45 @@ class _OtpScreenState extends State<OtpScreen> {
     DocumentReference documentReference =
         _firestore.collection('users').doc(user.uid);
 
-    try {
-      PhoneAuthCredential phoneAuthCredential = PhoneAuthProvider.credential(
-          verificationId: _verificationCode, smsCode: _pinCode);
-      await _firebaseAuth.currentUser.linkWithCredential(phoneAuthCredential);
-      documentReference.update({
-        'phoneNumber': widget.phoneNumber,
-        'isPhoneNumberVerified': true,
-      });
-      print('verified and linked');
-      Navigator.pushReplacementNamed(context, HomeScreen.id, arguments: true);
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'invalid-verification-code') {
-        print(e.code);
-        Fluttertoast.showToast(
-            msg: "Invalid code entered",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            timeInSecForIosWeb: 1,
-            backgroundColor: Colors.red,
-            textColor: Colors.white,
-            fontSize: 16.0);
-
-        _pinPutController.clear();
-      } else if (e.code == 'credential-already-in-use') {
-        print(e.code);
-        Fluttertoast.showToast(
-            msg: "This number has already been linked to an account",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            timeInSecForIosWeb: 1,
-            backgroundColor: Colors.red,
-            textColor: Colors.white,
-            fontSize: 16.0);
-      } else if (e.code == 'too-many-requests') {
-        print(e.code);
-        Fluttertoast.showToast(
-            msg: "Too many requests has been sent. Please try again later.",
-            toastLength: Toast.LENGTH_LONG,
-            gravity: ToastGravity.BOTTOM,
-            timeInSecForIosWeb: 1,
-            backgroundColor: Colors.red,
-            textColor: Colors.white,
-            fontSize: 16.0);
-      } else {
-        print('Uncaught exception');
-        print('Failed with error code: ${e.code}');
-        Fluttertoast.showToast(
-            msg: "${e.message}",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            timeInSecForIosWeb: 1,
-            backgroundColor: Colors.red,
-            textColor: Colors.white,
-            fontSize: 16.0);
-      }
-    }
+    PhoneAuthCredential phoneAuthCredential = PhoneAuthProvider.credential(
+        verificationId: _verificationCode, smsCode: _pinCode);
+    await _firebaseAuth.currentUser.linkWithCredential(phoneAuthCredential);
+    documentReference.update({
+      'phoneNumber': widget.phoneNumber,
+      'isPhoneNumberVerified': true,
+    });
+    print('verified and linked');
+    Navigator.pushReplacementNamed(context, HomeScreen.id, arguments: true);
   }
 
   failedVerification(FirebaseAuthException e) {
-    if (e.code == 'invalid-phone-number') {
-      setState(() {
-        error = e.message;
-        setState(() {
-          error = e.message;
-        });
-      });
+    if (e.code == null) {
+      Navigator.pushReplacementNamed(context, HomeScreen.id);
+      Fluttertoast.showToast(
+          msg: "Something went wrong. Check your connection and try again.",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0);
+    } else if (e.code == 'invalid-phone-number') {
+      Navigator.pushReplacementNamed(context, HomeScreen.id);
+
+      Fluttertoast.showToast(
+          msg: "The number entered was invalid",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0);
+      // setState(() {
+      //   error = e.message;
+      //   setState(() {
+      //     error = e.message;
+      //   });
+      // });
       print('Invalid phone number');
     } else if (e.code == 'too-many-requests') {
       print(e.code);

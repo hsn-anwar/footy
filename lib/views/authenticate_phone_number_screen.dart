@@ -104,7 +104,9 @@ class _AuthenticatePhoneNumberScreenState
   bool isPhoneNumberLinked() {
     var number = _firebaseAuth.currentUser.phoneNumber;
     print(number);
-    if (number != null) {
+    if (number != null && number != '') {
+      print('.......');
+      print(number);
       return true;
     } else {
       return false;
