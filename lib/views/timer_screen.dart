@@ -1,7 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:footy/shared/constants.dart';
-import 'package:footy/widgets/count_down_timer.dart';
+// import 'package:footy/widgets/count_down_timer.dart';
+import 'package:footy/widgets/timer.dart';
 import 'package:footy/widgets/error_notification.dart';
 import 'package:footy/widgets/time_picker.dart';
 import 'package:footy/widgets/timer_button.dart';
@@ -212,6 +213,7 @@ class _TimerViewState extends State<TimerView> with TickerProviderStateMixin {
                             ),
                             CountDownTimer(
                               stopWatchTimer: _primaryTimer,
+                              secondaryTimer: _secondaryTimer,
                               mins: primaryPresetMin,
                               secs: primaryPresetSec,
                               soundFlag: false,
@@ -295,6 +297,8 @@ class _TimerViewState extends State<TimerView> with TickerProviderStateMixin {
                               stopWatchTimer: _secondaryTimer,
                               mins: secondaryPresetMin,
                               secs: secondaryPresetSec,
+                              primaryMins: primaryPresetMin,
+                              primarySecs: primaryPresetSec,
                               callSetState: callSetState,
                               soundFlag: true,
                               primaryTimer: _primaryTimer,
