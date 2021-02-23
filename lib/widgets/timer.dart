@@ -12,7 +12,7 @@ class CountDownTimer extends StatefulWidget {
   final int primaryMins;
   final int primarySecs;
   final bool soundFlag;
-  final Function callSetState;
+  final Function onCycleComplete;
   final onPrimaryTimerStopped;
   final double radius;
   final double fontSize;
@@ -26,7 +26,7 @@ class CountDownTimer extends StatefulWidget {
     this.primarySecs,
     this.primaryTimer,
     this.secondaryTimer,
-    this.callSetState,
+    this.onCycleComplete,
     this.onPrimaryTimerStopped,
     this.radius,
     this.fontSize,
@@ -71,31 +71,35 @@ class _CountDownTimerState extends State<CountDownTimer> {
         if (widget.soundFlag) {
           if (_liveCount >= _mSecs) {
             if (widget.soundFlag && widget.stopWatchTimer.isRunning) {
-              if (_liveCount < pMilliSeconds) {
-                widget.stopWatchTimer.onExecute.add(StopWatchExecute.reset);
-                widget.stopWatchTimer.onExecute.add(StopWatchExecute.start);
-                playSound();
-              } else {
-                widget.stopWatchTimer.onExecute.add(StopWatchExecute.stop);
-              }
+              playSound();
             }
-
+            if (widget.soundFlag && widget.primaryTimer.isRunning) {
+              // if (_liveCount < pMilliSeconds) {
+              widget.stopWatchTimer.onExecute.add(StopWatchExecute.reset);
+              widget.stopWatchTimer.onExecute.add(StopWatchExecute.start);
+              // } else if (_liveCount == _mSecs) {
+              //   print('STOP');
+              // }
+            } else {
+              widget.stopWatchTimer.onExecute.add(StopWatchExecute.stop);
+            }
+            print('Timer value: $_timerValue');
             WidgetsBinding.instance
-                .addPostFrameCallback((_) => widget.callSetState());
+                .addPostFrameCallback((_) => widget.onCycleComplete());
           }
         } else {
           if (_liveCount >= _mSecs) {
-            if (widget.stopWatchTimer.isRunning) {
-              playSound();
-            }
+            // if (widget.stopWatchTimer.isRunning) {
+            //   playSound();
+            // }
 
             widget.stopWatchTimer.onExecute.add(StopWatchExecute.stop);
-            widget.secondaryTimer.onExecute.add(StopWatchExecute.stop);
+            // widget.secondaryTimer.onExecute.add(StopWatchExecute.stop);
 
             WidgetsBinding.instance.addPostFrameCallback(
                 (_) => widget.onPrimaryTimerStopped(true));
             WidgetsBinding.instance
-                .addPostFrameCallback((_) => widget.callSetState());
+                .addPostFrameCallback((_) => widget.onCycleComplete());
           }
         }
 
@@ -105,7 +109,8 @@ class _CountDownTimerState extends State<CountDownTimer> {
               radius: 140,
               percent: _liveCount / _mSecs > 1 ? 1 : _liveCount / _mSecs,
               center: Text(
-                displayTimer,
+                _timerValue <= 0 ? '00:00' : displayTimer,
+                // displayTimer,
                 style: TextStyle(
                   fontSize: 40,
                   fontFamily: 'Helvetica',

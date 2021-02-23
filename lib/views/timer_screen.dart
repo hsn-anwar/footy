@@ -96,11 +96,16 @@ class _TimerViewState extends State<TimerView> with TickerProviderStateMixin {
     return ((hours * 120) + (mins * 60) + secs) * 1000;
   }
 
+  int currentCycleCount = 0;
+  bool timerMode = false;
   void startButtonFunctionality() {
+    countFlag = true;
+
     setState(() {
       if (primaryPresetMin > 0 ||
           primaryPresetSec > 0 && secondaryPresetMin > 0 ||
           secondaryPresetSec > 0) {
+        getDivisions();
         _errorFlag = false;
         resetAndStopTimers();
         _startFlag = false;
@@ -109,6 +114,7 @@ class _TimerViewState extends State<TimerView> with TickerProviderStateMixin {
         startTimers();
       } else {
         setState(() {
+          print('in here');
           _errorFlag = true;
         });
       }
@@ -154,6 +160,45 @@ class _TimerViewState extends State<TimerView> with TickerProviderStateMixin {
     setState(() {});
   }
 
+  int remainingTime;
+  int secondaryTimerCycles;
+  bool countFlag = false;
+  void onCycleCompleted() {
+    if (countFlag) {
+      currentCycleCount += 1;
+      if (timerMode) {
+        setState(() {
+          timerMode = false;
+          countFlag = false;
+          currentCycleCount = 0;
+          secondaryPresetMin = 0;
+          secondaryPresetSec = 0;
+        });
+      }
+      setState(() {});
+      print('current: $currentCycleCount');
+      if (currentCycleCount == secondaryTimerCycles) {
+        setState(() {
+          timerMode = true;
+          secondaryPresetMin = 0;
+          secondaryPresetSec = remainingTime;
+        });
+      }
+    }
+  }
+
+  void getDivisions() {
+    int primaryMSecs =
+        getTimeInMilliseconds(mins: primaryPresetMin, secs: primaryPresetSec);
+    int secondaryMSecs = getTimeInMilliseconds(
+        mins: secondaryPresetMin, secs: secondaryPresetSec);
+
+    remainingTime = ((primaryMSecs % secondaryMSecs) / 1000).floor();
+    secondaryTimerCycles = (primaryMSecs / secondaryMSecs).floor();
+    print('Remaining time: $remainingTime');
+    print('Total cycles: $secondaryTimerCycles');
+  }
+
   @override
   void dispose() async {
     super.dispose();
@@ -191,7 +236,7 @@ class _TimerViewState extends State<TimerView> with TickerProviderStateMixin {
                           if (!_primaryTimer.isRunning &&
                               !_secondaryTimer.isRunning &&
                               _startFlag) {
-                            resetAndStopPrimaryTimer();
+                            // resetAndStopPrimaryTimer();
 
                             visibilityFlag1 = !visibilityFlag1;
                             visibilityFlag2 = false;
@@ -217,7 +262,7 @@ class _TimerViewState extends State<TimerView> with TickerProviderStateMixin {
                               mins: primaryPresetMin,
                               secs: primaryPresetSec,
                               soundFlag: false,
-                              callSetState: callSetState,
+                              onCycleComplete: callSetState,
                               onPrimaryTimerStopped: onPrimaryTimerStopped,
                             ),
                             Visibility(
@@ -246,6 +291,7 @@ class _TimerViewState extends State<TimerView> with TickerProviderStateMixin {
                                               _minController.value.text);
                                           primaryPresetSec = int.parse(
                                               _secController.value.text);
+                                          resetAndStopPrimaryTimer();
                                           visibilityFlag1 = false;
                                         });
                                       }
@@ -274,7 +320,7 @@ class _TimerViewState extends State<TimerView> with TickerProviderStateMixin {
                           if (!_primaryTimer.isRunning &&
                               !_secondaryTimer.isRunning &&
                               _startFlag) {
-                            resetAndStopSecondaryTimer();
+                            // resetAndStopSecondaryTimer();
                             visibilityFlag2 = !visibilityFlag2;
                             visibilityFlag1 = false;
                           }
@@ -295,11 +341,14 @@ class _TimerViewState extends State<TimerView> with TickerProviderStateMixin {
                             ),
                             CountDownTimer(
                               stopWatchTimer: _secondaryTimer,
-                              mins: secondaryPresetMin,
-                              secs: secondaryPresetSec,
+                              mins: timerMode == false ? secondaryPresetMin : 0,
+                              secs: timerMode == false
+                                  ? secondaryPresetSec
+                                  : remainingTime,
+                              //  [4, 4, 4, 1]
                               primaryMins: primaryPresetMin,
                               primarySecs: primaryPresetSec,
-                              callSetState: callSetState,
+                              onCycleComplete: onCycleCompleted,
                               soundFlag: true,
                               primaryTimer: _primaryTimer,
                             ),
@@ -326,6 +375,8 @@ class _TimerViewState extends State<TimerView> with TickerProviderStateMixin {
                                               .validate()) {
                                         setState(() {
                                           // _startFlag = false;
+                                          resetAndStopSecondaryTimer();
+
                                           visibilityFlag2 = false;
                                           secondaryPresetMin = int.parse(
                                               _minController2.value.text);
