@@ -4,6 +4,7 @@ import 'package:footy/services/auth_base.dart';
 import 'package:footy/services/auth_root.dart';
 import 'package:footy/shared/constants.dart';
 import 'package:footy/views/authenticate_phone_number_screen.dart';
+import 'package:footy/views/game_records.dart';
 import 'package:footy/views/qr_screen.dart';
 import 'package:footy/views/scan_qr_screen.dart';
 import 'package:footy/views/timer_screen.dart';
@@ -86,27 +87,31 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              RaisedButton(
+              ElevatedButton(
                 child: Text('Phone Authentication'),
                 onPressed: () => Navigator.pushNamed(
                     context, AuthenticatePhoneNumberScreen.id),
               ),
-              RaisedButton(
+              ElevatedButton(
                 child: Text('View OTP Screen'),
                 onPressed: () => Navigator.pushNamed(context, OtpScreen.id),
               ),
-              RaisedButton(
+              ElevatedButton(
                 child: Text('Timer'),
                 onPressed: () => Navigator.pushNamed(context, TimerView.id),
               ),
-              RaisedButton(
+              ElevatedButton(
                 child: Text('View QR Code'),
                 onPressed: () => Navigator.pushNamed(context, QrScreen.id),
               ),
-              RaisedButton(
+              ElevatedButton(
                 onPressed: () => Navigator.pushNamed(context, ScanQrScreen.id),
                 child: Text('Scan QR Code'),
-              )
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pushNamed(context, GameRecords.id),
+                child: Text('Game Records'),
+              ),
             ],
           ),
         ));
