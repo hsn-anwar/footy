@@ -40,8 +40,8 @@ class YearRecord {
   int totalLosses = 0;
   int totalDraws = 0;
   int totalGoals = 0;
-  bool isMVP = false;
-  bool showGoals;
+  int timesMVP = 0;
+  bool showGoals = false;
 
   YearRecord({
     @required this.year,
@@ -52,7 +52,7 @@ class YearRecord {
     this.totalDraws,
     this.totalGoals,
     this.showGoals,
-    this.isMVP,
+    this.timesMVP,
   });
 
   void displayRecord() {
@@ -62,6 +62,6 @@ class YearRecord {
         "losses: $totalLosses\n"
         "draws: $totalDraws\n"
         "goals: $totalGoals\n"
-        "isMVP: $isMVP\n");
+        "isMVP: $timesMVP\n");
   }
 }
