@@ -44,6 +44,7 @@ class Utils {
     User user = _firebaseAuth.currentUser;
     Query query = _firestore
         .collection("users")
+    //TODO: Change this to userID
         .doc("2dPRIeIss7Z2SpmpY4p4V8BdPDS2")
         .collection("gamesRecord");
     List<YearRecord> gameTypeRecords = [];
