@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:footy/models/game_models.dart';
 import 'package:footy/shared/constants.dart';
+import 'package:footy/widgets/data_table.dart';
 import 'package:logger/logger.dart';
 import 'package:sticky_grouped_list/sticky_grouped_list.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:intl/intl.dart';
 
 final Logger logger = Logger();
 
@@ -60,11 +62,14 @@ class _GameRecordsState extends State<GameRecords> {
         if (gameRecord.matchStatus == 'L')
           gameRecordList[index].totalLosses += 1;
 
+        gameRecordList[index].totalPlayed += 1;
+
         if (gameRecord.matchStatus == 'D')
           gameRecordList[index].totalDraws += 1;
       } else {
         YearRecord yearRecord = YearRecord(
           year: gameRecord.getYearPlayed(),
+          dateTimePlayed: gameRecord.playedAt.toDate(),
           totalDraws: 0,
           totalGoals: 0,
           totalLosses: 0,
@@ -76,6 +81,7 @@ class _GameRecordsState extends State<GameRecords> {
         if (gameRecord.gameType == 'Football')
           yearRecord.totalGoals += gameRecord.goals;
 
+        yearRecord.totalPlayed += 1;
         if (gameRecord.isMVP) yearRecord.isMVP = gameRecord.isMVP;
 
         if (gameRecord.matchStatus == 'W') yearRecord.totalWins += 1;
@@ -101,35 +107,42 @@ class _GameRecordsState extends State<GameRecords> {
     super.initState();
   }
 
+  void debugDataGenerator() async {
+    gameID--;
+    debugFlag = !debugFlag;
+    if (gameID % 2 == 0) {
+      status = 'W';
+    } else if (gameID % 3 == 0) {
+      status = 'L';
+    } else {
+      status = 'D';
+    }
+    await _firebaseFirestore
+        .collection("users")
+        .doc("2dPRIeIss7Z2SpmpY4p4V8BdPDS2")
+        .collection("gamesRecord")
+        .add({
+      "gameID": "$gameID",
+      "isMVP": "$debugFlag",
+      "matchStatus": status,
+      "gameType": "Football",
+    });
+  }
+
   int gameID = 999;
   bool debugFlag = false;
   String status;
+
+  List<YearRecord> gameRecords = [];
+
   @override
   Widget build(BuildContext context) {
     SizeConfig().init(context);
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          getGameRecords();
-          //   gameID--;
-          //   debugFlag = !debugFlag;
-          //   if (gameID % 2 == 0) {
-          //     status = 'W';
-          //   } else if (gameID % 3 == 0) {
-          //     status = 'L';
-          //   } else {
-          //     status = 'D';
-          //   }
-          //   await _firebaseFirestore
-          //       .collection("users")
-          //       .doc("2dPRIeIss7Z2SpmpY4p4V8BdPDS2")
-          //       .collection("gamesRecord")
-          //       .add({
-          //     "gameID": "$gameID",
-          //     "isMVP": "$debugFlag",
-          //     "matchStatus": status,
-          //     "gameType": "Football",
-          //   });
+          // getGameRecords();
+          // debugDataGenerator();
         },
       ),
       appBar: AppBar(
@@ -137,147 +150,179 @@ class _GameRecordsState extends State<GameRecords> {
       ),
       body: Container(
         width: SizeConfig.screenWidth,
-        child: GameRecordsDataTable(
-          record: gameRecordList,
+        child: GameData(
+          gameRecords: gameRecordList,
         ),
       ),
     );
   }
 }
 
-class GameRecordsDataTable extends StatelessWidget {
-  final List<YearRecord> record;
-
-  const GameRecordsDataTable({Key key, @required this.record})
-      : super(key: key);
+class GameData extends StatelessWidget {
+  GameData({this.gameRecords});
+  final List<YearRecord> gameRecords;
 
   @override
   Widget build(BuildContext context) {
-    SizeConfig().init(context);
-    return SizedBox(
-      width: double.infinity,
-      // height: 100,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: DataTable(
-              columnSpacing: SizeConfig.blockSizeHorizontal * 11,
-              columns: const <DataColumn>[
-                DataColumn(
-                  label: Text(
-                    'Year',
-                    style: TextStyle(fontStyle: FontStyle.italic),
-                  ),
-                ),
-                DataColumn(
-                  label: Text(
-                    'PL',
-                    style: TextStyle(fontStyle: FontStyle.italic),
-                  ),
-                ),
-                DataColumn(
-                  label: Text(
-                    'W',
-                    style: TextStyle(fontStyle: FontStyle.italic),
-                  ),
-                ),
-                DataColumn(
-                  label: Text(
-                    'D',
-                    style: TextStyle(fontStyle: FontStyle.italic),
-                  ),
-                ),
-                DataColumn(
-                  label: Text(
-                    'L',
-                    style: TextStyle(fontStyle: FontStyle.italic),
-                  ),
-                ),
-                DataColumn(
-                  label: Text(
-                    'MvP',
-                    style: TextStyle(fontStyle: FontStyle.italic),
-                  ),
-                ),
-                DataColumn(
-                  label: Text(
-                    'GO',
-                    style: TextStyle(fontStyle: FontStyle.italic),
-                  ),
-                ),
-              ],
-              rows: this
-                  .record
-                  .map((e) => DataRow(cells: [
-                        DataCell(Text(e.year.toString())),
-                        DataCell(Text(e.totalPlayed.toString())),
-                        DataCell(Text(e.totalWins.toString())),
-                        DataCell(Text(e.totalDraws.toString())),
-                        DataCell(Text(e.totalLosses.toString())),
-                        DataCell(Text(e.isMVP.toString())),
-                        DataCell(Text(e.totalGoals.toString())),
-                      ]))
-                  .toList()),
-        ),
+    return StickyGroupedListView<YearRecord, DateTime>(
+      elements: gameRecords,
+      order: StickyGroupedListOrder.DESC,
+      groupBy: (YearRecord yearRecord) => yearRecord.dateTimePlayed,
+      floatingHeader: true,
+      groupSeparatorBuilder: (YearRecord yearRecord) => Container(),
+      itemBuilder: (_, YearRecord yearRecord) {
+        return TableRow(yearRecord: yearRecord);
+      },
+    );
+  }
+}
+
+class TableHeader extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.white,
+      child: Row(
+        children: <Widget>[
+          SizedBox(
+            width: 10,
+          ),
+          Expanded(
+              child: Text(
+            'YEAR',
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.black45),
+          )),
+          Expanded(
+              child: Text(
+            'PL',
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.black45),
+          )),
+          Expanded(
+              child: Text(
+            'W',
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.black45),
+          )),
+          Expanded(
+              child: Text(
+            'D',
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.black45),
+          )),
+          Expanded(
+              child: Text(
+            'L',
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.black45),
+          )),
+          Expanded(
+              child: Text(
+            'MvP',
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.black45),
+          )),
+          Expanded(
+              child: Center(
+                  child: Text(
+            'GO',
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.black45),
+          ))),
+        ],
       ),
     );
   }
 }
 
-class GameRecord {
-  final String gameID;
-  final String gameType;
-  final bool isMVP;
-  final int goals;
-  final String matchStatus;
-  final Timestamp playedAt;
+class TableRow extends StatelessWidget {
+  final YearRecord yearRecord;
+  TableRow({@required this.yearRecord});
 
-  GameRecord(
-      {@required this.gameID,
-      @required this.gameType,
-      @required this.isMVP,
-      @required this.goals,
-      @required this.matchStatus,
-      @required this.playedAt});
-
-  getYearPlayed() {
-    if (this.playedAt != null) {
-      DateTime dateTime = this.playedAt.toDate();
-      DateFormat _formatter = DateFormat('yyyy');
-      String year = _formatter.format(dateTime);
-      return year;
-    }
-    return null;
-  }
-}
-
-class YearRecord {
-  final String year;
-  int totalPlayed = 0;
-  int totalWins = 0;
-  int totalLosses = 0;
-  int totalDraws = 0;
-  int totalGoals = 0;
-  bool isMVP = false;
-
-  YearRecord({
-    @required this.year,
-    this.totalPlayed,
-    this.totalWins,
-    this.totalLosses,
-    this.totalDraws,
-    this.totalGoals,
-    this.isMVP,
-  });
-
-  void displayRecord() {
-    logger.i("year: $year\n"
-        "games: $totalPlayed\n"
-        "wins: $totalWins\n"
-        "losses: $totalLosses\n"
-        "draws: $totalDraws\n"
-        "goals: $totalGoals\n"
-        "isMVP: $isMVP\n");
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(8, 4, 4, 8),
+      color: Colors.white,
+      child: Row(
+        children: <Widget>[
+          SizedBox(
+            width: 10,
+          ),
+          Expanded(
+              child: Text(
+            this.yearRecord.year,
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.black45),
+          )),
+          Expanded(
+              child: Text(
+            this.yearRecord.totalPlayed.toString(),
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.black45),
+          )),
+          Expanded(
+              child: Text(
+            this.yearRecord.totalWins.toString(),
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.black45),
+          )),
+          Expanded(
+              child: Text(
+            this.yearRecord.totalDraws.toString(),
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.black45),
+          )),
+          Expanded(
+              child: Text(
+            this.yearRecord.totalLosses.toString(),
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.black45),
+          )),
+          Expanded(
+              child: Text(
+            this.yearRecord.isMVP.toString(),
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.black45),
+          )),
+          Expanded(
+              child: Center(
+                  child: Text(
+            this.yearRecord.totalGoals.toString(),
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.black45),
+          ))),
+        ],
+      ),
+    );
   }
 }
