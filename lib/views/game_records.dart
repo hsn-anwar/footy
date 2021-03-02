@@ -5,7 +5,6 @@ import 'package:footy/models/game_models.dart';
 import 'package:footy/shared/constants.dart';
 import 'package:footy/widgets/data_table.dart';
 import 'package:logger/logger.dart';
-import 'package:sticky_grouped_list/sticky_grouped_list.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:footy/widgets/table_components.dart';
 import 'package:firebase_auth/firebase_auth.dart';

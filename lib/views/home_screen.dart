@@ -8,6 +8,7 @@ import 'package:footy/views/game_records.dart';
 import 'package:footy/views/qr_screen.dart';
 import 'package:footy/views/scan_qr_screen.dart';
 import 'package:footy/views/timer_screen.dart';
+import 'Screen_Chat.dart';
 import 'otp_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -111,6 +112,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ElevatedButton(
                 onPressed: () => Navigator.pushNamed(context, GameRecords.id),
                 child: Text('Game Records'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pushNamed(context, Chat.id),
+                child: Text('Chat Screen'),
               ),
             ],
           ),

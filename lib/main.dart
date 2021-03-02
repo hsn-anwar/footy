@@ -11,6 +11,7 @@ import 'package:footy/views/result_screen.dart';
 import 'package:footy/views/scan_qr_screen.dart';
 import 'package:footy/views/timer_screen.dart';
 import 'views/otp_screen.dart';
+import 'package:footy/views/Screen_Chat.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,7 +23,8 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   final Auth _auth = Auth();
-
+  final String peerID = "L0yZLcvTWUPJTFjR7Y8p9OOsrnB2";
+  // final String peerID = "SSmuznRGQoV83WfXqJ69pb6Av0T2";
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -42,6 +44,7 @@ class MyApp extends StatelessWidget {
         GameRecords.id: (context) => GameRecords(),
         ScanQrScreen.id: (context) => ScanQrScreen(),
         ResultScreen.id: (context) => ResultScreen(),
+        Chat.id: (context) => Chat(isPrivate: true, chatId: peerID),
       },
     );
   }

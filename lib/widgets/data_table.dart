@@ -6,7 +6,7 @@ import 'package:footy/models/game_models.dart';
 import 'package:footy/shared/constants.dart';
 import 'package:footy/widgets/table_components.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:footy/utilities/functions.dart';
+import 'package:footy/Utils/functions.dart';
 
 class GameRecordsDataTable extends StatefulWidget {
   @override
