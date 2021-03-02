@@ -88,6 +88,7 @@ class ChatScreenState extends State<ChatScreen> {
   bool isGettingMessages = false;
   List messages = [];
   void initializeAndGetChats() async {
+    if (isGettingMessages) return;
     setState(() {
       isGettingMessages = true;
     });
