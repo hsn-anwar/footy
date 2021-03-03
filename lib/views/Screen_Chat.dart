@@ -89,7 +89,9 @@ class ChatScreenState extends State<ChatScreen> {
   bool isGettingMessages = false;
   List messages = [];
   void initializeAndGetChats() async {
+    if (_isDispose) return;
     if (isGettingMessages) return;
+    logger.wtf('Method called');
     setState(() {
       isGettingMessages = true;
     });
@@ -104,7 +106,7 @@ class ChatScreenState extends State<ChatScreen> {
         } else {
           listMessage = listMessage + messages;
           _streamMessages = _streamMessages + messages;
-          _streamController.add(_streamMessages);
+          _streamController.sink.add(_streamMessages);
         }
       });
     }
@@ -139,7 +141,8 @@ class ChatScreenState extends State<ChatScreen> {
         .listen((data) async {
       _streamMessages =
           await utils.initializeMessaging(data.docChanges, _streamController);
-      await _streamController.add(_streamMessages);
+      logger.wtf(_streamMessages.length);
+      if (!_isDispose) await _streamController.sink.add(_streamMessages);
     });
 
     listScrollController.addListener(() {
@@ -151,13 +154,16 @@ class ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  bool _isDispose = false;
   @override
   void dispose() {
+    _isDispose = true;
     utils.lastMessage = null;
     utils.timesRan = 0;
     utils.isMoreMessages = true;
     _streamMessages.clear();
     _streamController.close();
+
     super.dispose();
   }
 

@@ -106,13 +106,13 @@ class Utils {
     var isChange = false;
     lastMessage = documentChanges.last.doc;
     documentChanges.forEach((productChange) async {
-      // streamLength =
       if (productChange.type == DocumentChangeType.added) {
         if (timesRan <= messagesPerRequest - 1) {
           _products.add(productChange.doc);
           isInitialCall = false;
           timesRan += 1;
         } else {
+          print(productChange.doc.data());
           _products.insert(0, productChange.doc);
         }
         isChange = true;
