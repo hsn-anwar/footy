@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:footy/models/game_models.dart';
@@ -12,6 +13,7 @@ import 'package:flutter/material.dart';
 // import 'package:footy_app/Screens/QRCode/Screen_ScanQRCode.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:footy/views/Screen_Chat.dart';
+import 'dart:async';
 
 class Utils {
   static final Utils _utils = Utils._internal();
@@ -20,8 +22,8 @@ class Utils {
   DocumentSnapshot lastMessage;
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
   FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  int messagesPerRequest = 16;
-  bool isMoreMessages = false;
+  int messagesPerRequest = 20;
+  bool isMoreMessages = true;
 
   factory Utils() {
     return _utils;
@@ -59,16 +61,20 @@ class Utils {
       String conversationID) async {
     List<DocumentSnapshot> messages;
     if (lastMessage == null)
-      messages = await getInitialMessages(conversationID);
-    else
+      // messages = await getInitialMessages(conversationID);
+      return null;
+    else {
       messages = await getMoreMessages(conversationID);
-
-    return messages;
+      // messages.forEach((element) {
+      //   logger.d(element.data());
+      // });
+      return messages;
+    }
   }
 
   Future<List<DocumentSnapshot>> getInitialMessages(
       String conversationID) async {
-    logger.d("Getting initial messages");
+    // logger.d("Getting initial messages");
     Query getMessagesQuery = _firestore
         .collection('conversations')
         .doc(conversationID)
@@ -77,6 +83,7 @@ class Utils {
         .orderBy('timestamp', descending: true);
 
     QuerySnapshot messages = await getMessagesQuery.get();
+    logger.wtf(messages.docs.length);
     if (messages.docs.length < messagesPerRequest) {
       isMoreMessages = false;
     } else {
@@ -85,9 +92,38 @@ class Utils {
     messages.docs.forEach((element) {
       print(element.data());
     });
-    logger.i('Initial messages length: ${messages.docs.length}');
+    // logger.i('Initial messages length: ${messages.docs.length}');
     lastMessage = messages.docs.last;
     return messages.docs;
+  }
+
+  List<DocumentSnapshot> _products = [];
+  bool isInitialCall = false;
+  int streamLength;
+  int timesRan = 0;
+  initializeMessaging(List<DocumentChange> documentChanges,
+      StreamController _streamController) {
+    var isChange = false;
+    lastMessage = documentChanges.last.doc;
+    documentChanges.forEach((productChange) async {
+      // streamLength =
+      if (productChange.type == DocumentChangeType.added) {
+        if (timesRan <= messagesPerRequest - 1) {
+          _products.add(productChange.doc);
+          isInitialCall = false;
+          timesRan += 1;
+        } else {
+          _products.insert(0, productChange.doc);
+        }
+        isChange = true;
+      }
+    });
+
+    if (isChange) {
+      // _streamController.add(_products);
+    }
+
+    return _products;
   }
 
   Future<List<DocumentSnapshot>> getMoreMessages(String conversationID) async {
@@ -116,8 +152,10 @@ class Utils {
       lastMessage = messages.docs.last;
 
       return messages.docs;
-    } else
+    } else {
+      logger.wtf(isMoreMessages);
       return null;
+    }
   }
 
   Future<Map<String, List<YearRecord>>> getAllUserGameRecords() async {

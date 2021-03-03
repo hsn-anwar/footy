@@ -23,7 +23,9 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   final Auth _auth = Auth();
+  // For device
   final String peerID = "L0yZLcvTWUPJTFjR7Y8p9OOsrnB2";
+  // for emulator
   // final String peerID = "SSmuznRGQoV83WfXqJ69pb6Av0T2";
   @override
   Widget build(BuildContext context) {

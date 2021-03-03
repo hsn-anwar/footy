@@ -11,6 +11,7 @@ import 'package:flutter_chat_bubble/clippers/chat_bubble_clipper_5.dart';
 import 'package:footy/const.dart';
 import 'package:footy/Utils/functions.dart';
 import 'package:logger/logger.dart';
+import 'dart:async';
 
 class Chat extends StatefulWidget {
   final String chatId;
@@ -102,6 +103,8 @@ class ChatScreenState extends State<ChatScreen> {
           listMessage = messages;
         } else {
           listMessage = listMessage + messages;
+          _streamMessages = _streamMessages + messages;
+          _streamController.add(_streamMessages);
         }
       });
     }
@@ -110,6 +113,9 @@ class ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  List _streamMessages = [];
+  int messagesPerRequest = 20;
+  StreamController<List> _streamController = StreamController<List>();
   @override
   void initState() {
     super.initState();
@@ -122,6 +128,20 @@ class ChatScreenState extends State<ChatScreen> {
     setState(() {});
     widget.isPrivate ? createConversationID() : conversationID = widget.chatId;
     initializeAndGetChats();
+    // utils.initializeMessaging(conversationID);
+    _firestore
+        .collection('conversations')
+        .doc(conversationID)
+        .collection(conversationID)
+        .limit(messagesPerRequest)
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .listen((data) async {
+      _streamMessages =
+          await utils.initializeMessaging(data.docChanges, _streamController);
+      await _streamController.add(_streamMessages);
+    });
+
     listScrollController.addListener(() {
       if (listScrollController.position.atEdge &&
           !(listScrollController.position.pixels == 0)) {
@@ -134,6 +154,10 @@ class ChatScreenState extends State<ChatScreen> {
   @override
   void dispose() {
     utils.lastMessage = null;
+    utils.timesRan = 0;
+    utils.isMoreMessages = true;
+    _streamMessages.clear();
+    _streamController.close();
     super.dispose();
   }
 
@@ -601,7 +625,7 @@ class ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget buildListMessage() {
+  Widget buildListMessage3() {
     logger.d(conversationID);
     return Flexible(
       child: listMessage == null
@@ -632,6 +656,53 @@ class ChatScreenState extends State<ChatScreen> {
           return buildItem(index, listMessage[index]);
         }
       },
+    );
+  }
+
+  Widget buildListMessage() {
+    return Flexible(
+      child: conversationID == ''
+          ? Center(
+              child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(themeColor)))
+          : StreamBuilder(
+              stream: _streamController.stream,
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return Center(
+                      child: CircularProgressIndicator(
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(themeColor)));
+                } else {
+                  listMessage = snapshot.data;
+                  if (listMessage.isEmpty) {
+                    isFirstMessage = true;
+                  }
+                  // snapshot.data.documents.reversed;
+                  lastMessageIndex = snapshot.data.length - 1;
+                  return ListView.builder(
+                    // shrinkWrap: true,
+                    physics: AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.all(10.0),
+                    itemBuilder: (context, index) {
+                      if (index == listMessage.length - 1) {
+                        return Column(
+                          children: [
+                            EndCard(isGettingMore: isGettingMessages),
+                            buildItem(index, snapshot.data[index]),
+                          ],
+                        );
+                      } else {
+                        return buildItem(index, snapshot.data[index]);
+                      }
+                    },
+                    itemCount: snapshot.data.length,
+                    reverse: true,
+                    controller: listScrollController,
+                  );
+                }
+              },
+            ),
     );
   }
 }
