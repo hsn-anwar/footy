@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:footy/services/auth_base.dart';
 import 'package:footy/services/auth_root.dart';
 import 'package:footy/views/authenticate_phone_number_screen.dart';
+import 'package:footy/views/countdown_timer_screen.dart';
 import 'package:footy/views/game_records.dart';
 import 'package:footy/views/home_screen.dart';
 import 'package:footy/views/login_screen.dart';
@@ -42,6 +43,7 @@ class MyApp extends StatelessWidget {
         HomeScreen.id: (context) => HomeScreen(),
         OtpScreen.id: (context) => OtpScreen(),
         TimerView.id: (context) => TimerView(),
+        TimerScreen.id: (context) => TimerScreen(),
         QrScreen.id: (context) => QrScreen(),
         GameRecords.id: (context) => GameRecords(),
         ScanQrScreen.id: (context) => ScanQrScreen(),

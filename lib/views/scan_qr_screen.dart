@@ -4,6 +4,8 @@ import 'package:footy/shared/constants.dart';
 import 'package:footy/views/result_screen.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 
+import '../const.dart';
+
 class ScanQrScreen extends StatefulWidget {
   static String id = 'scan_qr_screen';
   @override

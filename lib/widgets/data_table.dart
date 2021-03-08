@@ -8,6 +8,8 @@ import 'package:footy/widgets/table_components.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:footy/Utils/functions.dart';
 
+import '../const.dart';
+
 class GameRecordsDataTable extends StatefulWidget {
   @override
   _GameRecordsDataTableState createState() => _GameRecordsDataTableState();

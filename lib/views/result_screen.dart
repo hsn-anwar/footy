@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:footy/shared/constants.dart';
 
+import '../const.dart';
+
 class ResultScreen extends StatelessWidget {
   static String id = 'result_screen';
 

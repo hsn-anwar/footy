@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:footy/shared/constants.dart';
 import 'package:flutter/services.dart';
 
+import '../const.dart';
+
 class PickerField extends StatelessWidget {
   PickerField(
       {@required this.label,

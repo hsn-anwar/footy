@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:footy/shared/constants.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import '../const.dart';
+
 class QrScreen extends StatelessWidget {
   static String id = 'qr_screen';
   final String userId = 'FX2sNpNJ3meRmib2QmO0jyM9K542';

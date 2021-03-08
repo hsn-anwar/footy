@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:footy/views/home_screen.dart';
 import 'package:footy/widgets/count_down_timer.dart';
+import '../const.dart';
 import 'file:///E:/Projects/footy/lib/models/otp_data.dart';
 import 'package:pinput/pin_put/pin_put.dart';
 import 'package:pinput/pin_put/pin_put_state.dart';

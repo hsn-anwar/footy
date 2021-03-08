@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 
-
-Color primaryColor=  Colors.green[800];
-Color arrivedPlayerWidgetsColor=Colors.orange;
+Color primaryColor = Colors.green[800];
+Color arrivedPlayerWidgetsColor = Colors.orange;
 final themeColor = Colors.white;
 //final primaryColor = Color(0xffaeaeae);
 final greyColor = Color(0xffaeaeae);
 final greyColor2 = Color(0xffE8E8E8);
 
+Color kRunningFillColor = Colors.green[300];
+Color kRunningBackgroundColor = Colors.green[500];
+
+Color kStoppedFillColor = Colors.redAccent[100];
+Color kStoppedBackgroundColor = Colors.red[500];
 
 //todo:profileView actions
 //todo:conversations- add name,details when created, add peer id when user added
@@ -15,7 +19,6 @@ final greyColor2 = Color(0xffE8E8E8);
 //todo:
 
 List<String> gameTypeList = <String>[
-
   'Football',
   'Basketball',
   'Volleyball',
@@ -34,25 +37,20 @@ List<String> gameTypeList = <String>[
   'Baseball',
   'Dodge Ball',
   'Other (details in description)'
-
 ];
 List<String> recurrentTypeList = <String>[
-
   'Never',
   'Daily',
   'Weekly',
   'Monthly',
-
 ];
 
 List<String> cancellationOpList = <String>[
-
   'Never automatically cancel the game ',
   'Cancel the game automatically 1 hour before kick-off if game not full',
   'Cancel the game automatically 4 hour before kick-off if game not full',
   'Cancel the game automatically 8 hour before kick-off if game not full',
   'Cancel the game automatically 24 hour before kick-off if game not full',
-
 ];
 List<String> substitutesList = <String>[
   'No substitutes',
@@ -67,7 +65,6 @@ List<String> paymentList = <String>[
   'Payment at the pitch',
 ];
 List<String> gamePlayerList = <String>[
-
   '1-a-side',
   '2-a-side',
   '3-a-side',
@@ -83,7 +80,6 @@ List<String> gamePlayerList = <String>[
   '13-a-side',
   '14-a-side',
   '15-a-side',
-
 ];
 List<String> matchRegOpList = <String>[
   'Always open',
@@ -106,16 +102,17 @@ List<String> groundTypeList = <String>[
   'Other (Please specify in the description)'
 ];
 
-List<String> gamePlayerRole = <String>[
-
-  'GoalKeeper',
-  'Normal Player'
-];
+List<String> gamePlayerRole = <String>['GoalKeeper', 'Normal Player'];
 //const String kTimeOutSound = 'assets/sounds/referee_whistle.mp3';
 
 const kLabelStyle = TextStyle(fontSize: 17);
 const kButtonTextStyle = TextStyle(color: Colors.white, fontSize: 17);
 const kResendLabelStyle = TextStyle(color: Colors.black, fontSize: 17);
+const kTimerTextStyle = TextStyle(
+  fontSize: 33.0,
+  color: Colors.white,
+  fontWeight: FontWeight.bold,
+);
 
 InputDecoration kInputDecoration = InputDecoration(
   fillColor: Colors.white,

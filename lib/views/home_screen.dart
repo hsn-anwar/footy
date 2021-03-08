@@ -4,10 +4,12 @@ import 'package:footy/services/auth_base.dart';
 import 'package:footy/services/auth_root.dart';
 import 'package:footy/shared/constants.dart';
 import 'package:footy/views/authenticate_phone_number_screen.dart';
+import 'package:footy/views/countdown_timer_screen.dart';
 import 'package:footy/views/game_records.dart';
 import 'package:footy/views/qr_screen.dart';
 import 'package:footy/views/scan_qr_screen.dart';
 import 'package:footy/views/timer_screen.dart';
+import '../const.dart';
 import 'Screen_Chat.dart';
 import 'otp_screen.dart';
 
@@ -100,6 +102,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ElevatedButton(
                 child: Text('Timer'),
                 onPressed: () => Navigator.pushNamed(context, TimerView.id),
+              ),
+              ElevatedButton(
+                child: Text('New Timer'),
+                onPressed: () => Navigator.pushNamed(context, TimerScreen.id),
               ),
               ElevatedButton(
                 child: Text('View QR Code'),

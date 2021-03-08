@@ -9,6 +9,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:footy/widgets/table_components.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../const.dart';
+
 final Logger logger = Logger();
 
 class GameRecords extends StatefulWidget {

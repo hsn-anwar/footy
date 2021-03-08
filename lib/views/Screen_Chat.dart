@@ -160,6 +160,7 @@ class ChatScreenState extends State<ChatScreen> {
     _isDispose = true;
     utils.lastMessage = null;
     utils.timesRan = 0;
+    utils.isInitialCall = false;
     utils.isMoreMessages = true;
     _streamMessages.clear();
     _streamController.close();

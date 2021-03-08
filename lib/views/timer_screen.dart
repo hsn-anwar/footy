@@ -8,6 +8,8 @@ import 'package:footy/widgets/time_picker.dart';
 import 'package:footy/widgets/timer_button.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
 
+import '../const.dart';
+
 enum ResumeMode {
   user,
   auto,

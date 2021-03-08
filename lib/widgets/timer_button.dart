@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:footy/shared/constants.dart';
 
+import '../const.dart';
+
 class TimerButton extends StatelessWidget {
   final String buttonLabel;
   final Color buttonColor;

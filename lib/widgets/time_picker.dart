@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:footy/shared/constants.dart';
 import 'package:footy/widgets/picker_field.dart';
 
+import '../const.dart';
+
 class TimePicker extends StatelessWidget {
   final TextEditingController minController;
   final minFormKey;
