@@ -8,6 +8,7 @@ import 'package:footy/views/game_records.dart';
 import 'package:footy/views/home_screen.dart';
 import 'package:footy/views/login_screen.dart';
 import 'package:footy/views/qr_screen.dart';
+import 'package:footy/views/rating_screen.dart';
 import 'package:footy/views/result_screen.dart';
 import 'package:footy/views/scan_qr_screen.dart';
 import 'package:footy/views/timer_screen.dart';
@@ -25,9 +26,9 @@ void main() async {
 class MyApp extends StatelessWidget {
   final Auth _auth = Auth();
   // For device
-  final String peerID = "L0yZLcvTWUPJTFjR7Y8p9OOsrnB2";
+  // final String peerID = "L0yZLcvTWUPJTFjR7Y8p9OOsrnB2";
   // for emulator
-  // final String peerID = "SSmuznRGQoV83WfXqJ69pb6Av0T2";
+  final String peerID = "SSmuznRGQoV83WfXqJ69pb6Av0T2";
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -49,6 +50,7 @@ class MyApp extends StatelessWidget {
         ScanQrScreen.id: (context) => ScanQrScreen(),
         ResultScreen.id: (context) => ResultScreen(),
         Chat.id: (context) => Chat(isPrivate: true, chatId: peerID),
+        RatingScreen.id: (context) => RatingScreen(),
       },
     );
   }

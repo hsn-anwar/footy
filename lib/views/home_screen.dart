@@ -7,6 +7,7 @@ import 'package:footy/views/authenticate_phone_number_screen.dart';
 import 'package:footy/views/countdown_timer_screen.dart';
 import 'package:footy/views/game_records.dart';
 import 'package:footy/views/qr_screen.dart';
+import 'package:footy/views/rating_screen.dart';
 import 'package:footy/views/scan_qr_screen.dart';
 import 'package:footy/views/timer_screen.dart';
 import '../const.dart';
@@ -119,10 +120,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 onPressed: () => Navigator.pushNamed(context, GameRecords.id),
                 child: Text('Game Records'),
               ),
-              ElevatedButton(
+              TextButton(
                 onPressed: () => Navigator.pushNamed(context, Chat.id),
                 child: Text('Chat Screen'),
               ),
+              ElevatedButton(
+                  onPressed: () =>
+                      Navigator.pushNamed(context, RatingScreen.id),
+                  child: Text('Rating Screen'))
             ],
           ),
         ));
