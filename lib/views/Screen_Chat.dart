@@ -2,16 +2,19 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:footy/Utils/functions.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_chat_bubble/bubble_type.dart';
 import 'package:flutter_chat_bubble/chat_bubble.dart';
 import 'package:flutter_chat_bubble/clippers/chat_bubble_clipper_5.dart';
-import 'package:footy/const.dart';
-import 'package:footy/Utils/functions.dart';
 import 'package:logger/logger.dart';
 import 'dart:async';
+// import 'package:footy_app/Widgets/ProfileAvatarWithoutGlow.dart';
+import 'package:footy/const.dart';
+// import 'Utils/functions.dart';
+// import 'const.dart';
 
 class Chat extends StatefulWidget {
   final String chatId;
@@ -70,7 +73,7 @@ class ChatScreenState extends State<ChatScreen> {
   String currentUserID;
   Map<String, DocumentSnapshot> playersMap = Map();
 
-  List listMessage = [];
+  List<DocumentSnapshot> listMessage = [];
   String conversationID;
 
   bool isLoading;
@@ -84,40 +87,46 @@ class ChatScreenState extends State<ChatScreen> {
 
   int lastMessageIndex;
   bool isLastMessageSeen = true;
+  List<DocumentSnapshot> _streamMessages = [];
+  int messagesPerRequest = 30;
+  int totalMessages = 20;
+  StreamController<List> _streamController = StreamController<List>();
 
   Utils utils = Utils();
   bool isGettingMessages = false;
-  List messages = [];
+  List<DocumentSnapshot> messages = [];
+  bool isFirst = true;
+
   void initializeAndGetChats() async {
     if (_isDispose) return;
     if (isGettingMessages) return;
-    logger.wtf('Method called');
+    //logger.wtf('Method called - initializeAndGetChats');
     setState(() {
       isGettingMessages = true;
     });
+    //totalMessages+=messagesPerRequest;
     messages = await utils.getMessagesFromFirestore(conversationID);
+
     if (messages != null) {
-      messages.forEach((element) {
-        print(element.data());
-      });
-      setState(() {
-        if (listMessage.length == 0) {
-          listMessage = messages;
-        } else {
-          listMessage = listMessage + messages;
-          _streamMessages = _streamMessages + messages;
-          _streamController.sink.add(_streamMessages);
-        }
-      });
+      // messages.forEach((element) {
+      //   print(element.data());
+      // });
+
+      if (listMessage.length == 0) {
+        listMessage = messages;
+      } else {
+        listMessage.addAll(messages);
+        _streamMessages.addAll(messages);
+        _streamController.sink.add(listMessage);
+      }
+
+      setState(() {});
     }
     setState(() {
       isGettingMessages = false;
     });
   }
 
-  List _streamMessages = [];
-  int messagesPerRequest = 20;
-  StreamController<List> _streamController = StreamController<List>();
   @override
   void initState() {
     super.initState();
@@ -131,6 +140,7 @@ class ChatScreenState extends State<ChatScreen> {
     widget.isPrivate ? createConversationID() : conversationID = widget.chatId;
     initializeAndGetChats();
     // utils.initializeMessaging(conversationID);
+
     _firestore
         .collection('conversations')
         .doc(conversationID)
@@ -139,16 +149,44 @@ class ChatScreenState extends State<ChatScreen> {
         .orderBy('timestamp', descending: true)
         .snapshots()
         .listen((data) async {
-      _streamMessages =
-          await utils.initializeMessaging(data.docChanges, _streamController);
-      logger.wtf(_streamMessages.length);
-      if (!_isDispose) await _streamController.sink.add(_streamMessages);
+      // print('doc changes 1'+data.docChanges.toString());
+
+      // _streamMessages = await utils.initializeMessaging(data.docChanges, _streamController);
+      //+
+      // logger.wtf(_streamMessages.length);
+
+      //listMessage.addAll(data.docs);
+      //_streamMessages.addAll(data.docs);
+      //_streamController.sink.add(listMessage);
+
+      print('list message bf' + listMessage.length.toString());
+      print('stream message bf' + _streamMessages.length.toString());
+
+      if (listMessage.length > 0) {
+        _streamMessages =
+            await utils.initializeMessaging(data.docChanges, _streamController);
+
+        _streamMessages.addAll(listMessage);
+
+        // print('Stram messages length'+_streamMessages.length.toString());
+        //
+        //
+        // //listMessage.clear();
+        await _streamController.sink.add(_streamMessages);
+      } else {
+        if (!_isDispose) await _streamController.sink.add(data.docs);
+      }
+
+      // print('list message af'+listMessage.length.toString());
+      // print('stream message af'+_streamMessages.length.toString());
+      // utils.updateLastMessage()
     });
 
     listScrollController.addListener(() {
-      if (listScrollController.position.atEdge &&
-          !(listScrollController.position.pixels == 0)) {
-        logger.i("Get more messages");
+      double maxScroll = listScrollController.position.maxScrollExtent;
+      double currentScroll = listScrollController.position.pixels;
+      double delta = MediaQuery.of(context).size.height * 0.20;
+      if (maxScroll - currentScroll <= delta) {
         initializeAndGetChats();
       }
     });
@@ -160,7 +198,6 @@ class ChatScreenState extends State<ChatScreen> {
     _isDispose = true;
     utils.lastMessage = null;
     utils.timesRan = 0;
-    utils.isInitialCall = false;
     utils.isMoreMessages = true;
     _streamMessages.clear();
     _streamController.close();
@@ -205,10 +242,11 @@ class ChatScreenState extends State<ChatScreen> {
             'type': 0,
           },
         );
+        totalMessages += 1;
 
         if (isFirstMessage) {
           print(isFirstMessage);
-          transaction
+          await transaction
               .set(_firestore.collection('conversations').doc(conversationID), {
             'isPrivate': true,
             'peerIDList': FieldValue.arrayUnion([peerID, currentUserID])
@@ -216,14 +254,14 @@ class ChatScreenState extends State<ChatScreen> {
           isFirstMessage = false;
         }
 
-        await transaction.update(
-          _firestore.collection('conversations').doc(conversationID),
-          {
-            'senderID': currentUserID,
-            'sentAt': DateTime.now().millisecondsSinceEpoch.toString(),
-            'content': content,
-          },
-        );
+        // await transaction.update(
+        //   _firestore.collection('conversations').doc(conversationID),
+        //   {
+        //     'senderID': currentUserID,
+        //     'sentAt': DateTime.now().millisecondsSinceEpoch.toString(),
+        //     'content': content,
+        //   },
+        // );
       });
       listScrollController.animateTo(0.0,
           duration: Duration(milliseconds: 300), curve: Curves.easeOut);
@@ -276,25 +314,25 @@ class ChatScreenState extends State<ChatScreen> {
                   //buildUserItem(document.get('idFrom')),
                   Stack(
                     children: [
-                      Row(
-                        children: [
-                          // buildUserItem(document.get('idFrom')),
-                          Container(
-                            child: Text(
-                              DateFormat('dd MMM kk:mm').format(
-                                  DateTime.fromMillisecondsSinceEpoch(
-                                      int.parse(document['timestamp']))),
-                              style: TextStyle(
-                                  color: greyColor,
-                                  fontSize: 12.0,
-                                  fontStyle: FontStyle.italic),
-                            ),
-                            margin: EdgeInsets.only(
-                                left: 5.0, top: 5.0, bottom: 5.0),
-                          )
-                          //  : Container()
-                        ],
-                      ),
+                      // Row(
+                      //   children: [
+                      //     buildUserItem(document.get('idFrom')),
+                      //     Container(
+                      //       child: Text(
+                      //         DateFormat('dd MMM kk:mm').format(
+                      //             DateTime.fromMillisecondsSinceEpoch(
+                      //                 int.parse(document['timestamp']))),
+                      //         style: TextStyle(
+                      //             color: greyColor,
+                      //             fontSize: 12.0,
+                      //             fontStyle: FontStyle.italic),
+                      //       ),
+                      //       margin: EdgeInsets.only(
+                      //           left: 5.0, top: 5.0, bottom: 5.0),
+                      //     )
+                      //     //  : Container()
+                      //   ],
+                      // ),
                       ChatBubble(
                         clipper:
                             ChatBubbleClipper5(type: BubbleType.receiverBubble),
@@ -521,43 +559,8 @@ class ChatScreenState extends State<ChatScreen> {
                 child: Row(
                   // crossAxisAlignment: CrossAxisAlignment.end,
                   children: <Widget>[
-                    // Padding(
-                    //   padding: const EdgeInsets.only(top: 0.0),
-                    //   child: Material(
-                    //     elevation: 2.0,
-                    //     shape: CircleBorder(),
-                    //     child: CircleAvatar(
-                    //       backgroundColor: Colors.white,
-                    //       child: snapshot.data.get('photoUrl') != null
-                    //           ? CachedNetworkImage(
-                    //               imageUrl: snapshot.data.get('photoUrl'),
-                    //               imageBuilder: (context, imageProvider) =>
-                    //                   Container(
-                    //                 height: 30,
-                    //                 width: 30,
-                    //                 decoration: BoxDecoration(
-                    //                   shape: BoxShape.circle,
-                    //                   image: DecorationImage(
-                    //                       image: imageProvider,
-                    //                       fit: BoxFit.cover),
-                    //                 ),
-                    //               ),
-                    //               placeholder: (context, url) =>
-                    //                   CircularProgressIndicator(),
-                    //               errorWidget: (context, url, error) => Icon(
-                    //                 Icons.error,
-                    //                 size: 25,
-                    //               ),
-                    //             )
-                    //           : Image.asset(
-                    //               'assets/SampleProfileAvatar.png',
-                    //               height: 30,
-                    //               width: 30,
-                    //             ),
-                    //       radius: 17.0,
-                    //     ),
-                    //   ),
-                    // ),
+                    // SimpleProfileAvatar(photoUrl: snapshot.data['photoUrl'],height: 30,width: 30,radius: 15,),
+                    Container(),
                     SizedBox(
                       width: 5,
                     ),
@@ -588,83 +591,83 @@ class ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget buildListMessage2() {
-    logger.d(conversationID);
-    return Flexible(
-      child: conversationID == ''
-          ? Center(
-              child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(themeColor)))
-          : StreamBuilder(
-              stream: _firestore
-                  .collection('conversations')
-                  .doc(conversationID)
-                  .collection(conversationID)
-                  .orderBy('timestamp', descending: true)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return Center(
-                      child: CircularProgressIndicator(
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(themeColor)));
-                } else {
-                  listMessage = snapshot.data.docs;
-                  if (listMessage.isEmpty) {
-                    isFirstMessage = true;
-                  }
-                  // snapshot.data.documents.reversed;
+  // Widget buildListMessage2() {
+  //   //logger.d(conversationID);
+  //   return Flexible(
+  //     child: conversationID == ''
+  //         ? Center(
+  //         child: CircularProgressIndicator(
+  //             valueColor: AlwaysStoppedAnimation<Color>(themeColor)))
+  //         : StreamBuilder(
+  //       stream: _firestore
+  //           .collection('conversations')
+  //           .doc(conversationID)
+  //           .collection(conversationID)
+  //           .orderBy('timestamp', descending: true)
+  //           .snapshots(),
+  //       builder: (context, snapshot) {
+  //         if (!snapshot.hasData) {
+  //           return Center(
+  //               child: CircularProgressIndicator(
+  //                   valueColor:
+  //                   AlwaysStoppedAnimation<Color>(themeColor)));
+  //         } else {
+  //           listMessage = snapshot.data.docs;
+  //           if (listMessage.isEmpty) {
+  //             isFirstMessage = true;
+  //           }
+  //           // snapshot.data.documents.reversed;
+  //
+  //           lastMessageIndex = snapshot.data.docs.length - 1;
+  //           return ListView.builder(
+  //             // shrinkWrap: true,
+  //             // physics: AlwaysScrollableScrollPhysics(),
+  //             padding: EdgeInsets.all(10.0),
+  //             itemBuilder: (context, index) =>
+  //                 buildItem(index, snapshot.data.docs[index]),
+  //             itemCount: snapshot.data.docs.length,
+  //             reverse: true,
+  //             controller: listScrollController,
+  //           );
+  //         }
+  //       },
+  //     ),
+  //   );
+  // }
 
-                  lastMessageIndex = snapshot.data.docs.length - 1;
-                  return ListView.builder(
-                    // shrinkWrap: true,
-                    // physics: AlwaysScrollableScrollPhysics(),
-                    padding: EdgeInsets.all(10.0),
-                    itemBuilder: (context, index) =>
-                        buildItem(index, snapshot.data.docs[index]),
-                    itemCount: snapshot.data.docs.length,
-                    reverse: true,
-                    controller: listScrollController,
-                  );
-                }
-              },
-            ),
-    );
-  }
+  // Widget buildListMessage3() {
+  //  // logger.d(conversationID);
+  //   return Flexible(
+  //     child: listMessage == null
+  //         ? Center(
+  //         child: CircularProgressIndicator(
+  //             valueColor: AlwaysStoppedAnimation<Color>(themeColor)))
+  //         : messagesListView(),
+  //   );
+  // }
 
-  Widget buildListMessage3() {
-    logger.d(conversationID);
-    return Flexible(
-      child: listMessage == null
-          ? Center(
-              child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(themeColor)))
-          : messagesListView(),
-    );
-  }
-
-  Widget messagesListView() {
-    // logger.wtf(listMessage.length);
-    return ListView.builder(
-      padding: EdgeInsets.all(10.0),
-      reverse: true,
-      itemCount: listMessage.length,
-      controller: listScrollController,
-      itemBuilder: (BuildContext context, int index) {
-        SizeConfig().init(context);
-        if (index == listMessage.length - 1) {
-          return Column(
-            children: [
-              EndCard(isGettingMore: isGettingMessages),
-              buildItem(index, listMessage[index]),
-            ],
-          );
-        } else {
-          return buildItem(index, listMessage[index]);
-        }
-      },
-    );
-  }
+  // Widget messagesListView() {
+  //   // logger.wtf(listMessage.length);
+  //   return ListView.builder(
+  //     padding: EdgeInsets.all(10.0),
+  //     reverse: true,
+  //     itemCount: listMessage.length,
+  //     controller: listScrollController,
+  //     itemBuilder: (BuildContext context, int index) {
+  //       SizeConfig().init(context);
+  //       if (index == listMessage.length - 1) {
+  //         return Column(
+  //           children: [
+  //             EndCard(isGettingMore: isGettingMessages),
+  //             buildItem(index, listMessage[index]),
+  //           ],
+  //         );
+  //       } else {
+  //         return buildItem(index, listMessage[index]);
+  //       }
+  //     },
+  //   );
+  // }
 
   Widget buildListMessage() {
     return Flexible(
@@ -673,6 +676,7 @@ class ChatScreenState extends State<ChatScreen> {
               child: CircularProgressIndicator(
                   valueColor: AlwaysStoppedAnimation<Color>(themeColor)))
           : StreamBuilder(
+              // _streamController.stream
               stream: _streamController.stream,
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
@@ -687,11 +691,17 @@ class ChatScreenState extends State<ChatScreen> {
                   }
                   // snapshot.data.documents.reversed;
                   lastMessageIndex = snapshot.data.length - 1;
+
+                  if (listMessage.isNotEmpty) {
+                    utils.lastMessage = listMessage.last;
+                  }
                   return ListView.builder(
                     // shrinkWrap: true,
                     physics: AlwaysScrollableScrollPhysics(),
                     padding: EdgeInsets.all(10.0),
                     itemBuilder: (context, index) {
+                      print('snapshot data length' +
+                          snapshot.data.length.toString());
                       if (index == listMessage.length - 1) {
                         return Column(
                           children: [
@@ -703,7 +713,7 @@ class ChatScreenState extends State<ChatScreen> {
                         return buildItem(index, snapshot.data[index]);
                       }
                     },
-                    itemCount: snapshot.data.length,
+                    itemCount: listMessage.length,
                     reverse: true,
                     controller: listScrollController,
                   );

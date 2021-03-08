@@ -72,6 +72,39 @@ class Utils {
     }
   }
 
+  List<DocumentSnapshot> initializeMessaging(
+      List<DocumentChange> documentChanges,
+      StreamController _streamController) {
+    var isChange = false;
+    // lastMessage = documentChanges.last.doc;
+    List<DocumentSnapshot> messages = [];
+
+    print('last msg' + lastMessage.toString());
+    print('doc changes 2' + documentChanges.toString());
+
+    documentChanges.forEach((productChange) async {
+      if (productChange.type == DocumentChangeType.added) {
+        print('type added');
+        //  if (timesRan <= messagesPerRequest - 1) {
+        messages.add(productChange.doc);
+        //   isInitialCall = false;
+        //   timesRan += 1;
+        //  } else {
+        //print(productChange.doc.data());
+        //_products.insert(0, productChange.doc);
+        //  }
+        //  isChange = true;
+      }
+    });
+
+    // if (isChange) {
+    //   // _streamController.add(_products);
+    // }
+
+    //print(_products);
+    return messages;
+  }
+
   Future<List<DocumentSnapshot>> getInitialMessages(
       String conversationID) async {
     // logger.d("Getting initial messages");
@@ -101,30 +134,30 @@ class Utils {
   bool isInitialCall = false;
   int streamLength;
   int timesRan = 0;
-  initializeMessaging(List<DocumentChange> documentChanges,
-      StreamController _streamController) {
-    var isChange = false;
-    lastMessage = documentChanges.last.doc;
-    documentChanges.forEach((productChange) async {
-      if (productChange.type == DocumentChangeType.added) {
-        if (timesRan <= messagesPerRequest - 1) {
-          _products.add(productChange.doc);
-          isInitialCall = false;
-          timesRan += 1;
-        } else {
-          print(productChange.doc.data());
-          _products.insert(0, productChange.doc);
-        }
-        isChange = true;
-      }
-    });
-
-    if (isChange) {
-      // _streamController.add(_products);
-    }
-
-    return _products;
-  }
+  // initializeMessaging(List<DocumentChange> documentChanges,
+  //     StreamController _streamController) {
+  //   var isChange = false;
+  //   lastMessage = documentChanges.last.doc;
+  //   documentChanges.forEach((productChange) async {
+  //     if (productChange.type == DocumentChangeType.added) {
+  //       if (timesRan <= messagesPerRequest - 1) {
+  //         _products.add(productChange.doc);
+  //         isInitialCall = false;
+  //         timesRan += 1;
+  //       } else {
+  //         print(productChange.doc.data());
+  //         _products.insert(0, productChange.doc);
+  //       }
+  //       isChange = true;
+  //     }
+  //   });
+  //
+  //   if (isChange) {
+  //     // _streamController.add(_products);
+  //   }
+  //
+  //   return _products;
+  // }
 
   Future<List<DocumentSnapshot>> getMoreMessages(String conversationID) async {
     if (isMoreMessages) {
