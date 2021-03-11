@@ -1,10 +1,11 @@
+import 'package:circular_countdown_timer/circular_countdown_timer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:footy/models/otp_data.dart';
+import 'package:footy/views/countdown_timer_screen.dart';
 import 'package:footy/views/home_screen.dart';
-import 'package:footy/widgets/count_down_timer.dart';
 import '../const.dart';
-import 'file:///E:/Projects/footy/lib/models/otp_data.dart';
 import 'package:pinput/pin_put/pin_put.dart';
 import 'package:pinput/pin_put/pin_put_state.dart';
 import 'package:footy/shared/constants.dart';
@@ -198,6 +199,7 @@ class _OtpScreenState extends State<OtpScreen> {
   }
 
   final StopWatchTimer timerController = StopWatchTimer();
+  final CountDownController primaryCounterController = CountDownController();
 
   bool _isSubmitted = false;
 
@@ -205,6 +207,9 @@ class _OtpScreenState extends State<OtpScreen> {
   @override
   void initState() {
     timerController.onExecute.add(StopWatchExecute.start);
+    WidgetsBinding.instance.addPostFrameCallback(
+        (_) => primaryCounterController.restart(duration: 60));
+
     validatePhone();
     // initializeAutoValidatorFlag();
     super.initState();
@@ -330,18 +335,19 @@ class _OtpScreenState extends State<OtpScreen> {
                                 style: kResendLabelStyle),
                             SizedBox(height: 8),
                             Container(
-                              decoration: BoxDecoration(),
-                              child: CountDownTimer(
-                                stopWatchTimer: timerController,
-                                mins: 0,
-                                secs: 60,
-                                soundFlag: false,
-                                onPrimaryTimerStopped: onPrimaryTimerStopped,
-                                callSetState: callSetState,
-                                radius: 60,
-                                fontSize: 15,
-                              ),
-                            ),
+                                height: SizeConfig.blockSizeHorizontal * 10,
+                                width: SizeConfig.blockSizeHorizontal * 10,
+                                decoration: BoxDecoration(),
+                                child: CountDownTimer(
+                                  bcgColor: kStoppedBackgroundColor,
+                                  onStart: () {},
+                                  timerController: primaryCounterController,
+                                  onComplete: onPrimaryTimerStopped,
+                                  fillColor: kStoppedFillColor,
+                                  fontSize: 15,
+                                  secondsOnly: true,
+                                  strokeWidth: 3,
+                                )),
                           ],
                         )
                       : ElevatedButton(
@@ -360,7 +366,7 @@ class _OtpScreenState extends State<OtpScreen> {
     );
   }
 
-  void onPrimaryTimerStopped(bool changeFlag) {
+  void onPrimaryTimerStopped() {
     setState(() {
       _showResendButton = true;
     });
@@ -372,8 +378,9 @@ class _OtpScreenState extends State<OtpScreen> {
 
   void resendSmsFunctionality() {
     setState(() {
-      timerController.onExecute.add(StopWatchExecute.reset);
-      timerController.onExecute.add(StopWatchExecute.start);
+      // timerController.onExecute.add(StopWatchExecute.reset);
+      // timerController.onExecute.add(StopWatchExecute.start);
+      primaryCounterController.restart(duration: resendCodeTime);
       _showResendButton = false;
       resendCodeTime = 60;
     });

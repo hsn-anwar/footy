@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -13,8 +15,14 @@ import 'package:logger/logger.dart';
 import 'dart:async';
 // import 'package:footy_app/Widgets/ProfileAvatarWithoutGlow.dart';
 import 'package:footy/const.dart';
+import 'package:animated_text_kit/animated_text_kit.dart';
 // import 'Utils/functions.dart';
 // import 'const.dart';
+
+enum MessageStatus {
+  Sent,
+  Sending,
+}
 
 class Chat extends StatefulWidget {
   final String chatId;
@@ -97,6 +105,8 @@ class ChatScreenState extends State<ChatScreen> {
   List<DocumentSnapshot> messages = [];
   bool isFirst = true;
 
+  Map<String, Object> messageData = HashMap();
+
   void initializeAndGetChats() async {
     if (_isDispose) return;
     if (isGettingMessages) return;
@@ -127,6 +137,7 @@ class ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  bool isMessageSent = false;
   @override
   void initState() {
     super.initState();
@@ -173,6 +184,12 @@ class ChatScreenState extends State<ChatScreen> {
         //
         // //listMessage.clear();
         await _streamController.sink.add(_streamMessages);
+        // _listKey.currentState.insertItem(listMessage.length - 1);
+        // setState(() {
+        //   isMessageSent = true;
+        //   logger.i("Message sent \n"
+        //       "Message: ${_streamMessages[_streamMessages.length - 1].data()}");
+        // });
       } else {
         if (!_isDispose) await _streamController.sink.add(data.docs);
       }
@@ -180,6 +197,8 @@ class ChatScreenState extends State<ChatScreen> {
       // print('list message af'+listMessage.length.toString());
       // print('stream message af'+_streamMessages.length.toString());
       // utils.updateLastMessage()
+    }).onDone(() {
+      logger.wtf("Stream closed");
     });
 
     listScrollController.addListener(() {
@@ -219,11 +238,21 @@ class ChatScreenState extends State<ChatScreen> {
     setState(() {});
   }
 
-  void onSendMessage(String content, int type) {
+  List<bool> sendingMessages = [];
+  void onSendMessage(String content, int type) async {
     //print('con'+conversationID);
     if (content.trim() != '') {
+      setState(() {
+        sendingMessages.add(true);
+        isMessageSent = false;
+      });
+      messageData['idFrom'] = currentUserID;
+      messageData['idTo'] = peerID;
+      messageData['timestamp'] =
+          DateTime.now().millisecondsSinceEpoch.toString();
+      messageData['content'] = content;
+      messageData['type'] = 0;
       textEditingController.clear();
-
       print(conversationID);
       var documentReference = _firestore
           .collection('conversations')
@@ -232,16 +261,7 @@ class ChatScreenState extends State<ChatScreen> {
           .doc(DateTime.now().millisecondsSinceEpoch.toString());
 
       _firestore.runTransaction((transaction) async {
-        await transaction.set(
-          documentReference,
-          {
-            'idFrom': currentUserID,
-            'idTo': peerID,
-            'timestamp': DateTime.now().millisecondsSinceEpoch.toString(),
-            'content': content,
-            'type': 0,
-          },
-        );
+        await transaction.set(documentReference, messageData);
         totalMessages += 1;
 
         if (isFirstMessage) {
@@ -262,6 +282,23 @@ class ChatScreenState extends State<ChatScreen> {
         //     'content': content,
         //   },
         // );
+      }).then((value) {
+        logger.d(value.runtimeType);
+        setState(() {
+          sendingMessages.removeAt(0);
+        });
+        print('Success');
+      }).onError((error, stackTrace) {
+        setState(() {
+          sendingMessages.clear();
+        });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content:
+                Text("Could not send message due to network in-availability")));
+        setState(() {
+          isMessageSent = true;
+        });
+        logger.i(error);
       });
       listScrollController.animateTo(0.0,
           duration: Duration(milliseconds: 300), curve: Curves.easeOut);
@@ -416,6 +453,16 @@ class ChatScreenState extends State<ChatScreen> {
                   // List of messages
                   buildListMessage(),
 
+                  // messageData['content'] != null
+                  //     ? !isMessageSent
+                  //         ? Padding(
+                  //             padding:
+                  //                 EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 10.0),
+                  //             child: SendingChatBubble(
+                  //                 content: messageData['content']),
+                  //           )
+                  //         : Container()
+                  //     : Container(),
                   // Flexible(
                   //   child: ListView.builder(
                   //     shrinkWrap: true,
@@ -591,83 +638,8 @@ class ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  // Widget buildListMessage2() {
-  //   //logger.d(conversationID);
-  //   return Flexible(
-  //     child: conversationID == ''
-  //         ? Center(
-  //         child: CircularProgressIndicator(
-  //             valueColor: AlwaysStoppedAnimation<Color>(themeColor)))
-  //         : StreamBuilder(
-  //       stream: _firestore
-  //           .collection('conversations')
-  //           .doc(conversationID)
-  //           .collection(conversationID)
-  //           .orderBy('timestamp', descending: true)
-  //           .snapshots(),
-  //       builder: (context, snapshot) {
-  //         if (!snapshot.hasData) {
-  //           return Center(
-  //               child: CircularProgressIndicator(
-  //                   valueColor:
-  //                   AlwaysStoppedAnimation<Color>(themeColor)));
-  //         } else {
-  //           listMessage = snapshot.data.docs;
-  //           if (listMessage.isEmpty) {
-  //             isFirstMessage = true;
-  //           }
-  //           // snapshot.data.documents.reversed;
-  //
-  //           lastMessageIndex = snapshot.data.docs.length - 1;
-  //           return ListView.builder(
-  //             // shrinkWrap: true,
-  //             // physics: AlwaysScrollableScrollPhysics(),
-  //             padding: EdgeInsets.all(10.0),
-  //             itemBuilder: (context, index) =>
-  //                 buildItem(index, snapshot.data.docs[index]),
-  //             itemCount: snapshot.data.docs.length,
-  //             reverse: true,
-  //             controller: listScrollController,
-  //           );
-  //         }
-  //       },
-  //     ),
-  //   );
-  // }
-
-  // Widget buildListMessage3() {
-  //  // logger.d(conversationID);
-  //   return Flexible(
-  //     child: listMessage == null
-  //         ? Center(
-  //         child: CircularProgressIndicator(
-  //             valueColor: AlwaysStoppedAnimation<Color>(themeColor)))
-  //         : messagesListView(),
-  //   );
-  // }
-
-  // Widget messagesListView() {
-  //   // logger.wtf(listMessage.length);
-  //   return ListView.builder(
-  //     padding: EdgeInsets.all(10.0),
-  //     reverse: true,
-  //     itemCount: listMessage.length,
-  //     controller: listScrollController,
-  //     itemBuilder: (BuildContext context, int index) {
-  //       SizeConfig().init(context);
-  //       if (index == listMessage.length - 1) {
-  //         return Column(
-  //           children: [
-  //             EndCard(isGettingMore: isGettingMessages),
-  //             buildItem(index, listMessage[index]),
-  //           ],
-  //         );
-  //       } else {
-  //         return buildItem(index, listMessage[index]);
-  //       }
-  //     },
-  //   );
-  // }
+  final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
+  Tween<Offset> _offset = Tween(begin: Offset(0, -1), end: Offset(0, 0));
 
   Widget buildListMessage() {
     return Flexible(
@@ -709,6 +681,37 @@ class ChatScreenState extends State<ChatScreen> {
                             buildItem(index, snapshot.data[index]),
                           ],
                         );
+                      } else if (index == 0) {
+                        if (sendingMessages.contains(true)) {
+                          return Row(
+                            children: [
+                              Spacer(),
+                              SizedBox(
+                                width: 250.0,
+                                child: SizedBox(
+                                  width: 250.0,
+                                  child: ColorizeAnimatedTextKit(
+                                    onTap: () {},
+                                    text: [
+                                      "Sending message",
+                                    ],
+                                    textStyle: TextStyle(
+                                        fontSize: 12.0, fontFamily: "Horizon"),
+                                    colors: [
+                                      Colors.grey,
+                                      Colors.blueGrey,
+                                      Colors.green,
+                                      Colors.greenAccent,
+                                    ],
+                                    textAlign: TextAlign.start,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        } else {
+                          return Container();
+                        }
                       } else {
                         return buildItem(index, snapshot.data[index]);
                       }
@@ -750,6 +753,39 @@ class EndCard extends StatelessWidget {
                 ],
               )
             : Container(),
+      ],
+    );
+  }
+}
+
+class SendingChatBubble extends StatelessWidget {
+  final String content;
+  SendingChatBubble({@required this.content});
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Row(
+          children: <Widget>[
+            ChatBubble(
+              clipper: ChatBubbleClipper5(type: BubbleType.sendBubble),
+              alignment: Alignment.topRight,
+              margin: EdgeInsets.only(top: 10),
+              backGroundColor: Colors.red,
+              child: Container(
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.7,
+                ),
+                child: Text(
+                  this.content,
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ),
+          ],
+          mainAxisAlignment: MainAxisAlignment.end,
+        ),
       ],
     );
   }

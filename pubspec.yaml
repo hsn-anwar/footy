@@ -46,6 +46,8 @@ dependencies:
   flutter_chat_bubble: ^1.0.2
   data_connection_checker: ^0.3.4
   circular_countdown_timer: ^0.1.0
+  animated_text_kit: ^4.0.0
+
 
   firebase_core: ^0.7.0
   firebase_auth: ^0.20.0+1

@@ -50,6 +50,12 @@ class _RatingScreenState extends State<RatingScreen> {
           data["totalRatings"] = totalRatings;
           data["averageRating"] = avgRating;
           transaction.update(centerReference, data);
+
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Row(
+              children: [Text("Updat")],
+            ),
+          ));
         } on FirebaseException catch (e) {
           logger.wtf(e.message);
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(

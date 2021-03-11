@@ -111,6 +111,7 @@ class _TimerScreenState extends State<TimerScreen> {
                       fillColor: isPrimaryTimerRunning
                           ? kRunningFillColor
                           : kStoppedFillColor,
+                      secondsOnly: false,
                     ),
                   ),
                   Visibility(
@@ -168,6 +169,7 @@ class _TimerScreenState extends State<TimerScreen> {
                       fillColor: isSecondaryTimerRunning
                           ? kRunningFillColor
                           : kStoppedFillColor,
+                      secondsOnly: false,
                     ),
                   ),
                   Visibility(
@@ -428,15 +430,20 @@ class CountDownTimer extends StatelessWidget {
   final Function onComplete;
   final Color fillColor;
   final Color bcgColor;
-
-  const CountDownTimer(
-      {Key key,
-      @required this.timerController,
-      @required this.onStart,
-      @required this.onComplete,
-      @required this.fillColor,
-      @required this.bcgColor})
-      : super(key: key);
+  final double fontSize;
+  final bool secondsOnly;
+  final double strokeWidth;
+  const CountDownTimer({
+    Key key,
+    @required this.timerController,
+    @required this.onStart,
+    @required this.onComplete,
+    @required this.fillColor,
+    @required this.bcgColor,
+    this.fontSize,
+    @required this.secondsOnly,
+    this.strokeWidth,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -455,10 +462,12 @@ class CountDownTimer extends StatelessWidget {
         fillGradient: null,
         backgroundColor: this.bcgColor,
         backgroundGradient: null,
-        strokeWidth: 10.0,
+        strokeWidth: this.strokeWidth ?? 10.0,
         strokeCap: StrokeCap.round,
-        textStyle: kTimerTextStyle,
-        textFormat: CountdownTextFormat.MM_SS,
+        textStyle: kTimerTextStyle.copyWith(fontSize: this.fontSize ?? 33),
+        textFormat: this.secondsOnly
+            ? CountdownTextFormat.SS
+            : CountdownTextFormat.MM_SS,
         isReverse: true,
         isReverseAnimation: false,
         isTimerTextShown: true,
