@@ -682,36 +682,40 @@ class ChatScreenState extends State<ChatScreen> {
                           ],
                         );
                       } else if (index == 0) {
-                        if (sendingMessages.contains(true)) {
-                          return Row(
-                            children: [
-                              Spacer(),
-                              SizedBox(
-                                width: 250.0,
-                                child: SizedBox(
-                                  width: 250.0,
-                                  child: ColorizeAnimatedTextKit(
-                                    onTap: () {},
-                                    text: [
-                                      "Sending message",
+                        return Column(
+                          children: [
+                            buildItem(index, snapshot.data[index]),
+                            sendingMessages.contains(true)
+                                ? Row(
+                                    children: [
+                                      Spacer(),
+                                      SizedBox(
+                                        width: 250.0,
+                                        child: SizedBox(
+                                          width: 250.0,
+                                          child: ColorizeAnimatedTextKit(
+                                            onTap: () {},
+                                            text: [
+                                              "Sending message",
+                                            ],
+                                            textStyle: TextStyle(
+                                                fontSize: 12.0,
+                                                fontFamily: "Horizon"),
+                                            colors: [
+                                              Colors.grey,
+                                              Colors.blueGrey,
+                                              Colors.green,
+                                              Colors.greenAccent,
+                                            ],
+                                            textAlign: TextAlign.start,
+                                          ),
+                                        ),
+                                      ),
                                     ],
-                                    textStyle: TextStyle(
-                                        fontSize: 12.0, fontFamily: "Horizon"),
-                                    colors: [
-                                      Colors.grey,
-                                      Colors.blueGrey,
-                                      Colors.green,
-                                      Colors.greenAccent,
-                                    ],
-                                    textAlign: TextAlign.start,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          );
-                        } else {
-                          return Container();
-                        }
+                                  )
+                                : Container()
+                          ],
+                        );
                       } else {
                         return buildItem(index, snapshot.data[index]);
                       }
