@@ -57,6 +57,8 @@ class _GameRecordsState extends State<GameRecords> {
 
   @override
   Widget build(BuildContext context) {
+    final String userID = ModalRoute.of(context).settings.arguments;
+
     SizeConfig().init(context);
     return Scaffold(
       floatingActionButton: FloatingActionButton(
@@ -69,7 +71,7 @@ class _GameRecordsState extends State<GameRecords> {
       appBar: AppBar(
         title: Text('Game Records'),
       ),
-      body: GameRecordsDataTable(),
+      body: GameRecordsDataTable(userID: userID),
     );
   }
 }

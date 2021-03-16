@@ -24,6 +24,7 @@ class Utils {
   FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   int messagesPerRequest = 20;
   bool isMoreMessages = true;
+  Map<String, Map<String, List<YearRecord>>> allUsersRecords = {};
 
   factory Utils() {
     return _utils;
@@ -191,75 +192,86 @@ class Utils {
     }
   }
 
-  Future<Map<String, List<YearRecord>>> getAllUserGameRecords() async {
+  Future<Map<String, List<YearRecord>>> getAllUserGameRecords(
+      String userID) async {
+    print(allUsersRecords);
+
     User user = _firebaseAuth.currentUser;
     Query query = _firestore
         .collection("users")
         //TODO: Change this to userID
-        .doc("L0yZLcvTWUPJTFjR7Y8p9OOsrnB2")
+        .doc(userID)
         // .doc(user.uid)
         .collection("gamesRecord");
-    List<YearRecord> gameTypeRecords = [];
 
-    QuerySnapshot querySnapshot = await query.get();
-    List<DocumentSnapshot> docs = querySnapshot.docs;
-    logger.i(docs.length);
-    int index;
-    for (DocumentSnapshot doc in docs) {
-      GameRecord gameRecord = GameRecord(
-          gameID: doc.data()['gameID'],
-          matchStatus: doc.data()['matchStatus'],
-          playedAt: doc.data()['playedAt'],
-          gameType: doc.data()['gameType'],
-          isMVP: doc.data()['isMVP'],
-          goals: int.parse(doc.data()['goals'] ?? '0'));
+    if (allUsersRecords.containsKey(userID)) {
+      return allUsersRecords[userID];
+    } else {
+      List<YearRecord> gameTypeRecords = [];
 
-      if (!allGameRecords.containsKey(gameRecord.gameType)) {
-        allGameRecords[gameRecord.gameType] = [];
-      }
+      QuerySnapshot querySnapshot = await query.get();
+      List<DocumentSnapshot> docs = querySnapshot.docs;
+      logger.i(docs.length);
+      int index;
+      for (DocumentSnapshot doc in docs) {
+        GameRecord gameRecord = GameRecord(
+            gameID: doc.data()['gameID'],
+            matchStatus: doc.data()['matchStatus'],
+            playedAt: doc.data()['playedAt'],
+            gameType: doc.data()['gameType'],
+            isMVP: doc.data()['isMVP'],
+            goals: int.parse(doc.data()['goals'] ?? '0'));
 
-      gameTypeRecords = allGameRecords[gameRecord.gameType];
+        if (!allGameRecords.containsKey(gameRecord.gameType)) {
+          allGameRecords[gameRecord.gameType] = [];
+        }
 
-      index = gameTypeRecords
-          .indexWhere((record) => record.year == gameRecord.getYearPlayed());
+        gameTypeRecords = allGameRecords[gameRecord.gameType];
 
-      if (index == -1) {
-        YearRecord yearRecord = YearRecord(
-          year: gameRecord.getYearPlayed(),
-          totalDraws: 0,
-          totalGoals: 0,
-          totalLosses: 0,
-          totalPlayed: 0,
-          totalWins: 0,
-          timesMVP: 0,
-          showGoals: false,
-          dateTimePlayed: gameRecord.playedAt.toDate(),
-        );
-
-        gameTypeRecords.add(yearRecord);
         index = gameTypeRecords
             .indexWhere((record) => record.year == gameRecord.getYearPlayed());
+
+        if (index == -1) {
+          YearRecord yearRecord = YearRecord(
+            year: gameRecord.getYearPlayed(),
+            totalDraws: 0,
+            totalGoals: 0,
+            totalLosses: 0,
+            totalPlayed: 0,
+            totalWins: 0,
+            timesMVP: 0,
+            showGoals: false,
+            dateTimePlayed: gameRecord.playedAt.toDate(),
+          );
+
+          gameTypeRecords.add(yearRecord);
+          index = gameTypeRecords.indexWhere(
+              (record) => record.year == gameRecord.getYearPlayed());
+        }
+
+        if (gameRecord.gameType == 'Football' ||
+            gameRecord.gameType == 'Field Hockey') {
+          gameTypeRecords[index].showGoals = true;
+          gameTypeRecords[index].totalGoals += gameRecord.goals;
+        }
+
+        gameTypeRecords[index].totalPlayed += 1;
+        if (gameRecord.isMVP) gameTypeRecords[index].timesMVP += 1;
+
+        if (gameRecord.matchStatus == 'W')
+          gameTypeRecords[index].totalWins += 1;
+
+        if (gameRecord.matchStatus == 'L')
+          gameTypeRecords[index].totalLosses += 1;
+
+        if (gameRecord.matchStatus == 'D')
+          gameTypeRecords[index].totalDraws += 1;
+        gameTypeRecords
+            .sort((a, b) => int.parse(b.year).compareTo(int.parse(a.year)));
+        allGameRecords[gameRecord.gameType] = gameTypeRecords;
       }
-
-      if (gameRecord.gameType == 'Football' ||
-          gameRecord.gameType == 'Field Hockey') {
-        gameTypeRecords[index].showGoals = true;
-        gameTypeRecords[index].totalGoals += gameRecord.goals;
-      }
-
-      gameTypeRecords[index].totalPlayed += 1;
-      if (gameRecord.isMVP) gameTypeRecords[index].timesMVP += 1;
-
-      if (gameRecord.matchStatus == 'W') gameTypeRecords[index].totalWins += 1;
-
-      if (gameRecord.matchStatus == 'L')
-        gameTypeRecords[index].totalLosses += 1;
-
-      if (gameRecord.matchStatus == 'D') gameTypeRecords[index].totalDraws += 1;
-      gameTypeRecords
-          .sort((a, b) => int.parse(b.year).compareTo(int.parse(a.year)));
-      allGameRecords[gameRecord.gameType] = gameTypeRecords;
+      allUsersRecords[userID] = allGameRecords;
+      return allUsersRecords[userID];
     }
-    return allGameRecords;
   }
 }

@@ -12,6 +12,7 @@ import 'package:footy/views/rating_screen.dart';
 import 'package:footy/views/result_screen.dart';
 import 'package:footy/views/scan_qr_screen.dart';
 import 'package:footy/views/timer_screen.dart';
+import 'package:footy/views/users_screen.dart';
 import 'views/otp_screen.dart';
 import 'package:footy/views/Screen_Chat.dart';
 
@@ -50,6 +51,7 @@ class MyApp extends StatelessWidget {
         ResultScreen.id: (context) => ResultScreen(),
         Chat.id: (context) => Chat(isPrivate: true, chatId: peerID),
         RatingScreen.id: (context) => RatingScreen(),
+        UsersScreen.id: (context) => UsersScreen(),
       },
     );
   }

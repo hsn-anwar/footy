@@ -11,6 +11,10 @@ import 'package:footy/Utils/functions.dart';
 import '../const.dart';
 
 class GameRecordsDataTable extends StatefulWidget {
+  final String userID;
+
+  const GameRecordsDataTable({Key key, this.userID}) : super(key: key);
+
   @override
   _GameRecordsDataTableState createState() => _GameRecordsDataTableState();
 }
@@ -168,7 +172,7 @@ class _GameRecordsDataTableState extends State<GameRecordsDataTable> {
       isLoading = true;
     });
 
-    allGameRecords = await utils.getAllUserGameRecords();
+    allGameRecords = await utils.getAllUserGameRecords(widget.userID);
     for (MapEntry<String, List<YearRecord>> entry in allGameRecords.entries) {
       logger.wtf(entry.key);
       for (YearRecord yearRecord in entry.value) {
@@ -179,7 +183,7 @@ class _GameRecordsDataTableState extends State<GameRecordsDataTable> {
     setState(() {
       isLoading = false;
     });
-    logger.wtf(allGameRecords);
+    // logger.wtf(allGameRecords);
     return isEmpty;
   }
 }

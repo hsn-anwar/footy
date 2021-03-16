@@ -10,6 +10,7 @@ import 'package:footy/views/qr_screen.dart';
 import 'package:footy/views/rating_screen.dart';
 import 'package:footy/views/scan_qr_screen.dart';
 import 'package:footy/views/timer_screen.dart';
+import 'package:footy/views/users_screen.dart';
 import '../const.dart';
 import 'Screen_Chat.dart';
 import 'otp_screen.dart';
@@ -117,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Text('Scan QR Code'),
               ),
               ElevatedButton(
-                onPressed: () => Navigator.pushNamed(context, GameRecords.id),
+                onPressed: () => Navigator.pushNamed(context, UsersScreen.id),
                 child: Text('Game Records'),
               ),
               TextButton(
