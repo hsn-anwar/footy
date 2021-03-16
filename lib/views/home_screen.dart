@@ -6,9 +6,11 @@ import 'package:footy/shared/constants.dart';
 import 'package:footy/views/authenticate_phone_number_screen.dart';
 import 'package:footy/views/countdown_timer_screen.dart';
 import 'package:footy/views/game_records.dart';
+import 'package:footy/views/notification_history_screen.dart';
 import 'package:footy/views/qr_screen.dart';
 import 'package:footy/views/rating_screen.dart';
 import 'package:footy/views/scan_qr_screen.dart';
+import 'package:footy/views/splash_screen.dart';
 import 'package:footy/views/timer_screen.dart';
 import 'package:footy/views/users_screen.dart';
 import '../const.dart';
@@ -128,7 +130,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ElevatedButton(
                   onPressed: () =>
                       Navigator.pushNamed(context, RatingScreen.id),
-                  child: Text('Rating Screen'))
+                  child: Text('Rating Screen')),
+              ElevatedButton(
+                  onPressed: () =>
+                      Navigator.pushNamed(context, SplashScreen.id),
+                  child: Text('Notification History'))
             ],
           ),
         ));
