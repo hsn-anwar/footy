@@ -18,7 +18,6 @@ import 'dart:async';
 class Utils {
   static final Utils _utils = Utils._internal();
   Map<String, DocumentSnapshot> playersMap = Map();
-  Map<String, List<YearRecord>> allGameRecords = {};
   DocumentSnapshot lastMessage;
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
   FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
@@ -194,7 +193,7 @@ class Utils {
 
   Future<Map<String, List<YearRecord>>> getAllUserGameRecords(
       String userID) async {
-    print(allUsersRecords);
+    logger.wtf(userID);
 
     User user = _firebaseAuth.currentUser;
     Query query = _firestore
@@ -205,6 +204,8 @@ class Utils {
         .collection("gamesRecord");
 
     if (allUsersRecords.containsKey(userID)) {
+      logger.d("in if");
+      print(allUsersRecords);
       return allUsersRecords[userID];
     } else {
       List<YearRecord> gameTypeRecords = [];
@@ -213,6 +214,8 @@ class Utils {
       List<DocumentSnapshot> docs = querySnapshot.docs;
       logger.i(docs.length);
       int index;
+      Map<String, List<YearRecord>> allGameRecords = {};
+
       for (DocumentSnapshot doc in docs) {
         GameRecord gameRecord = GameRecord(
             gameID: doc.data()['gameID'],
@@ -270,7 +273,11 @@ class Utils {
             .sort((a, b) => int.parse(b.year).compareTo(int.parse(a.year)));
         allGameRecords[gameRecord.gameType] = gameTypeRecords;
       }
+      logger.wtf(allUsersRecords.keys.toList());
+      print(allGameRecords);
       allUsersRecords[userID] = allGameRecords;
+      print(userID);
+      print(allUsersRecords);
       return allUsersRecords[userID];
     }
   }

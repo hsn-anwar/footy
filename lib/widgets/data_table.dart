@@ -173,12 +173,12 @@ class _GameRecordsDataTableState extends State<GameRecordsDataTable> {
     });
 
     allGameRecords = await utils.getAllUserGameRecords(widget.userID);
-    for (MapEntry<String, List<YearRecord>> entry in allGameRecords.entries) {
-      logger.wtf(entry.key);
-      for (YearRecord yearRecord in entry.value) {
-        yearRecord.displayRecord();
-      }
-    }
+    // for (MapEntry<String, List<YearRecord>> entry in allGameRecords.entries) {
+    //   logger.wtf(entry.key);
+    //   for (YearRecord yearRecord in entry.value) {
+    //     yearRecord.displayRecord();
+    //   }
+    // }
     bool isEmpty = getInitialDropDownValue();
     setState(() {
       isLoading = false;
