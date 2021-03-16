@@ -196,7 +196,7 @@ class Utils {
     Query query = _firestore
         .collection("users")
         //TODO: Change this to userID
-        .doc("2dPRIeIss7Z2SpmpY4p4V8BdPDS2")
+        .doc("L0yZLcvTWUPJTFjR7Y8p9OOsrnB2")
         // .doc(user.uid)
         .collection("gamesRecord");
     List<YearRecord> gameTypeRecords = [];
