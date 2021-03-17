@@ -5,6 +5,12 @@ import 'dart:io' show Platform;
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:footy/views/notification_history_screen.dart';
+import 'package:logger/logger.dart';
+import 'package:footy/database/database.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:intl/intl.dart';
+
+Logger logger = Logger();
 
 class SplashScreen extends StatefulWidget {
   static final String id = '/splash_screen';
@@ -16,6 +22,7 @@ class _SplashScreenState extends State<SplashScreen> {
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+  DatabaseHelper _databaseHelper = DatabaseHelper.instance;
 
   initializeAndroid() async {
     //  Using local notification package to show push
@@ -55,6 +62,21 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   int notificationNumber = 0;
+  // DateFormat('yyyy-MM-dd – kk:mm')
+  void saveNotificationToSqfLite(RemoteMessage message) async {
+    message.data.forEach((key, value) {
+      print(key);
+    });
+    int index = await DatabaseHelper.instance.insert(
+      {
+        DatabaseHelper.columnNotificationTitle: message.notification.title,
+        DatabaseHelper.columnNotificationBody: message.notification.body,
+        DatabaseHelper.columnDateTimeReceived:
+            "${DateFormat('dd-MM-yyyy - kk:mm').format(message.sentTime)}",
+      },
+    );
+    print(index);
+  }
 
   initializeIOS() async {
     NotificationSettings settings = NotificationSettings();
@@ -85,11 +107,14 @@ class _SplashScreenState extends State<SplashScreen> {
       //  When user receives notification inside App
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         showNotification(message);
+        saveNotificationToSqfLite(message);
       });
     } else if (Platform.isIOS) {
       initializeIOS();
       //  When user receives notification inside App
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        saveNotificationToSqfLite(message);
+
         if (message == null) {
           // navigate to home screen
           // navigateToAuthRoot();
@@ -98,6 +123,13 @@ class _SplashScreenState extends State<SplashScreen> {
         }
       });
     }
+
+    FirebaseMessaging.onBackgroundMessage((RemoteMessage message) {
+      saveNotificationToSqfLite(message);
+      return null;
+    });
+
+    // On tap conditions
 
     // Platform unspecific code will run for IOS and Android
     // when user taps push notification from app in
