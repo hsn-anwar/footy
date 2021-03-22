@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:footy/services/auth_base.dart';
 import 'package:footy/services/auth_root.dart';
@@ -15,14 +16,35 @@ import 'package:footy/views/scan_qr_screen.dart';
 import 'package:footy/views/splash_screen.dart';
 import 'package:footy/views/timer_screen.dart';
 import 'package:footy/views/users_screen.dart';
+import 'database/database.dart';
 import 'views/otp_screen.dart';
 import 'package:footy/views/Screen_Chat.dart';
+import 'package:intl/intl.dart';
+
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // If you're going to use other Firebase services in the background, such as Firestore,
+  // make sure you call `initializeApp` before using other Firebase services.
+  message.data.forEach((key, value) {
+    print(key);
+  });
+  int index = await DatabaseHelper.instance.insert(
+    {
+      DatabaseHelper.columnNotificationTitle: message.notification.title,
+      DatabaseHelper.columnNotificationBody: message.notification.body,
+      DatabaseHelper.columnDateTimeReceived:
+          "${DateFormat('dd-MM-yyyy - kk:mm').format(message.sentTime)}",
+    },
+  );
+
+  print(index);
+  print("Handling a background message: ${message.messageId}");
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp();
-
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   runApp(MyApp());
 }
 

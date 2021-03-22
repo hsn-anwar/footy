@@ -16,6 +16,7 @@ class _NotificationHistoryScreenState extends State<NotificationHistoryScreen> {
     List<Map<String, dynamic>> notifications =
         await DatabaseHelper.instance.queryAll();
     print(notifications);
+    setState(() {});
     return notifications;
   }
 

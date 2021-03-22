@@ -75,6 +75,7 @@ class _SplashScreenState extends State<SplashScreen> {
             "${DateFormat('dd-MM-yyyy - kk:mm').format(message.sentTime)}",
       },
     );
+    setState(() {});
     print(index);
   }
 
@@ -124,10 +125,10 @@ class _SplashScreenState extends State<SplashScreen> {
       });
     }
 
-    FirebaseMessaging.onBackgroundMessage((RemoteMessage message) {
-      saveNotificationToSqfLite(message);
-      return null;
-    });
+    // FirebaseMessaging.onBackgroundMessage((RemoteMessage message) {
+    //   saveNotificationToSqfLite(message);
+    //   return null;
+    // });
 
     // On tap conditions
 
