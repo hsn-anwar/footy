@@ -1,3 +1,5 @@
+import 'dart:html';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -28,6 +30,7 @@ class _CreateNotificationScreenState extends State<CreateNotificationScreen> {
         });
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text("Notification created")));
+        Navigator.pop(context);
       } catch (e) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('error: $e')));
