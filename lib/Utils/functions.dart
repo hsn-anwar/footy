@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:footy/database/database.dart';
 import 'package:footy/models/game_models.dart';
 import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +15,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:footy/views/Screen_Chat.dart';
 import 'dart:async';
+import 'package:intl/intl.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class Utils {
   static final Utils _utils = Utils._internal();
@@ -30,6 +33,21 @@ class Utils {
   }
 
   Utils._internal();
+
+  void saveNotificationToSqfLite(RemoteMessage message) async {
+    message.data.forEach((key, value) {
+      print(key);
+    });
+    int index = await DatabaseHelper.instance.insert(
+      {
+        DatabaseHelper.columnNotificationTitle: message.notification.title,
+        DatabaseHelper.columnNotificationBody: message.notification.body,
+        DatabaseHelper.columnDateTimeReceived:
+            "${DateFormat('dd-MM-yyyy - kk:mm').format(message.sentTime)}",
+      },
+    );
+    print(index);
+  }
 
   void startConversation(context, String id, isPrivate) {
     Navigator.of(context).push(MaterialPageRoute(builder: (context) {

@@ -8,6 +8,7 @@ import 'package:footy/views/notification_history_screen.dart';
 import 'package:logger/logger.dart';
 import 'package:footy/database/database.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:footy/Utils/functions.dart';
 import 'package:intl/intl.dart';
 
 Logger logger = Logger();
@@ -63,20 +64,10 @@ class _SplashScreenState extends State<SplashScreen> {
 
   int notificationNumber = 0;
   // DateFormat('yyyy-MM-dd – kk:mm')
+  Utils utils = Utils();
   void saveNotificationToSqfLite(RemoteMessage message) async {
-    message.data.forEach((key, value) {
-      print(key);
-    });
-    int index = await DatabaseHelper.instance.insert(
-      {
-        DatabaseHelper.columnNotificationTitle: message.notification.title,
-        DatabaseHelper.columnNotificationBody: message.notification.body,
-        DatabaseHelper.columnDateTimeReceived:
-            "${DateFormat('dd-MM-yyyy - kk:mm').format(message.sentTime)}",
-      },
-    );
+    utils.saveNotificationToSqfLite(message);
     setState(() {});
-    print(index);
   }
 
   initializeIOS() async {
