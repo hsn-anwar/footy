@@ -5,6 +5,7 @@ import 'package:footy/services/auth_root.dart';
 import 'package:footy/shared/constants.dart';
 import 'package:footy/views/authenticate_phone_number_screen.dart';
 import 'package:footy/views/countdown_timer_screen.dart';
+import 'package:footy/views/create_notification_screen.dart';
 import 'package:footy/views/game_records.dart';
 import 'package:footy/views/notification_history_screen.dart';
 import 'package:footy/views/qr_screen.dart';
@@ -94,6 +95,10 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              ElevatedButton(
+                  onPressed: () =>
+                      Navigator.pushNamed(context, CreateNotificationScreen.id),
+                  child: Text('Create Notification')),
               ElevatedButton(
                 child: Text('Phone Authentication'),
                 onPressed: () => Navigator.pushNamed(

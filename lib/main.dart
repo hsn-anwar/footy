@@ -5,6 +5,7 @@ import 'package:footy/services/auth_base.dart';
 import 'package:footy/services/auth_root.dart';
 import 'package:footy/views/authenticate_phone_number_screen.dart';
 import 'package:footy/views/countdown_timer_screen.dart';
+import 'package:footy/views/create_notification_screen.dart';
 import 'package:footy/views/game_records.dart';
 import 'package:footy/views/home_screen.dart';
 import 'package:footy/views/login_screen.dart';
@@ -78,6 +79,7 @@ class MyApp extends StatelessWidget {
         UsersScreen.id: (context) => UsersScreen(),
         SplashScreen.id: (context) => SplashScreen(),
         NotificationHistoryScreen.id: (context) => NotificationHistoryScreen(),
+        CreateNotificationScreen.id: (context) => CreateNotificationScreen(),
       },
     );
   }
