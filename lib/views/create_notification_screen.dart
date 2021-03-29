@@ -1,7 +1,6 @@
-import 'dart:html';
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:footy/ads/ads.dart';
 
 class CreateNotificationScreen extends StatefulWidget {
   static final String id = '/create_notification_screen';
@@ -36,6 +35,13 @@ class _CreateNotificationScreenState extends State<CreateNotificationScreen> {
             .showSnackBar(SnackBar(content: Text('error: $e')));
       }
     }
+  }
+
+  @override
+  void initState() {
+    myInterstitial.load();
+
+    super.initState();
   }
 
   @override

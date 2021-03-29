@@ -17,6 +17,7 @@ import 'package:footy/views/scan_qr_screen.dart';
 import 'package:footy/views/splash_screen.dart';
 import 'package:footy/views/timer_screen.dart';
 import 'package:footy/views/users_screen.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'database/database.dart';
 import 'views/otp_screen.dart';
 import 'package:footy/views/Screen_Chat.dart';
@@ -46,6 +47,8 @@ void main() async {
 
   await Firebase.initializeApp();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  MobileAds.instance.initialize();
+
   runApp(MyApp());
 }
 
@@ -68,7 +71,6 @@ class MyApp extends StatelessWidget {
             AuthenticatePhoneNumberScreen(),
         HomeScreen.id: (context) => HomeScreen(),
         OtpScreen.id: (context) => OtpScreen(),
-        TimerView.id: (context) => TimerView(),
         TimerScreen.id: (context) => TimerScreen(),
         QrScreen.id: (context) => QrScreen(),
         GameRecords.id: (context) => GameRecords(),

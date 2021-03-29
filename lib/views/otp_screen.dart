@@ -13,7 +13,6 @@ import 'dart:async';
 import 'dart:io' show Platform;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/services.dart';
-import 'package:stop_watch_timer/stop_watch_timer.dart';
 
 class OtpScreen extends StatefulWidget {
   static final String id = 'otp_screen';
@@ -198,7 +197,6 @@ class _OtpScreenState extends State<OtpScreen> {
     }
   }
 
-  final StopWatchTimer timerController = StopWatchTimer();
   final CountDownController primaryCounterController = CountDownController();
 
   bool _isSubmitted = false;
@@ -206,7 +204,6 @@ class _OtpScreenState extends State<OtpScreen> {
   String error = '';
   @override
   void initState() {
-    timerController.onExecute.add(StopWatchExecute.start);
     WidgetsBinding.instance.addPostFrameCallback(
         (_) => primaryCounterController.restart(duration: 60));
 
