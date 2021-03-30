@@ -16,7 +16,9 @@ import 'package:footy/views/users_screen.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../const.dart';
 import 'Screen_Chat.dart';
+import 'filter_games_screen.dart';
 import 'otp_screen.dart';
+import 'package:footy/views/add_screen.dart';
 import 'package:footy/ads/ads.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -151,6 +153,16 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
+        bottomNavigationBar: Container(
+          // height: adSize,
+          color: Colors.transparent,
+          child: Container(
+            alignment: Alignment.center,
+            child: adWidget,
+            width: myBanner.size.width.toDouble(),
+            height: myBanner.size.height.toDouble(),
+          ),
+        ),
         body: Center(
           child: Container(
             width: SizeConfig.screenWidth,
@@ -209,19 +221,23 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                     child: Text('Notification History')),
                 ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, FilterGamesScreen.id);
+                    },
+                    child: Text('Game Filter Screen')),
+                ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, AdScreen.id);
+                    },
+                    child: Text('Ad Screen')),
+                ElevatedButton(
                     onPressed: () async {
                       if (!_interstitialReady) return;
                       _interstitialAd.show();
                       _interstitialReady = false;
                       _interstitialAd = null;
                     },
-                    child: Text('Show add')),
-                Container(
-                  alignment: Alignment.center,
-                  child: adWidget,
-                  width: myBanner.size.width.toDouble(),
-                  height: myBanner.size.height.toDouble(),
-                ),
+                    child: Text('Show Ad')),
               ],
             ),
           ),

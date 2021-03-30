@@ -6,6 +6,7 @@ import 'package:footy/services/auth_root.dart';
 import 'package:footy/views/authenticate_phone_number_screen.dart';
 import 'package:footy/views/countdown_timer_screen.dart';
 import 'package:footy/views/create_notification_screen.dart';
+import 'package:footy/views/filter_games_screen.dart';
 import 'package:footy/views/game_records.dart';
 import 'package:footy/views/home_screen.dart';
 import 'package:footy/views/login_screen.dart';
@@ -22,6 +23,7 @@ import 'database/database.dart';
 import 'views/otp_screen.dart';
 import 'package:footy/views/Screen_Chat.dart';
 import 'package:intl/intl.dart';
+import 'views/add_screen.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // If you're going to use other Firebase services in the background, such as Firestore,
@@ -82,6 +84,8 @@ class MyApp extends StatelessWidget {
         SplashScreen.id: (context) => SplashScreen(),
         NotificationHistoryScreen.id: (context) => NotificationHistoryScreen(),
         CreateNotificationScreen.id: (context) => CreateNotificationScreen(),
+        FilterGamesScreen.id: (context) => FilterGamesScreen(),
+        AdScreen.id: (context) => AdScreen(),
       },
     );
   }
