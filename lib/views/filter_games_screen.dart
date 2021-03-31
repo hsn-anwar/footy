@@ -4,7 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum FilterMode { lastWeek, dateRange, year, none }
+enum FilterMode { lastWeek, dateRange, year }
 
 class FilterGamesScreen extends StatefulWidget {
   static final String id = '/filter_games_screen';
@@ -253,13 +253,16 @@ class _FilterGamesScreenState extends State<FilterGamesScreen> {
   }
 
   List<DocumentSnapshot> games = [];
-  FilterMode filterMode = FilterMode.none;
+  FilterMode filterMode;
   bool isLoading = false;
 
   ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
+    filterMode = FilterMode.lastWeek;
+    getGames();
+
     _scrollController.addListener(() {
       double maxScroll = _scrollController.position.maxScrollExtent;
       double currentScroll = _scrollController.position.pixels;
@@ -269,7 +272,6 @@ class _FilterGamesScreenState extends State<FilterGamesScreen> {
         getMoreGames();
       }
     });
-    getYears();
     super.initState();
   }
 
@@ -288,7 +290,8 @@ class _FilterGamesScreenState extends State<FilterGamesScreen> {
             onPressed: () {
               setState(() {
                 clearData();
-                filterMode = FilterMode.none;
+                filterMode = FilterMode.lastWeek;
+                getGames();
               });
             },
           )
@@ -408,16 +411,6 @@ class _FilterGamesScreenState extends State<FilterGamesScreen> {
     getGames();
   }
 
-  List<DateTime> years = [];
-  getYears() {
-    DateTime now = DateTime.now();
-
-    for (int year = now.year; year >= 2015; year--) {
-      years.add(DateTime(year, 1, 1));
-    }
-    print(years);
-  }
-
   DateTime yearSelected = DateTime.now();
 
   getLastWeek() {
@@ -523,7 +516,7 @@ class _YearPickerState extends State<YearPicker> {
     super.initState();
   }
 
-  int selectedIndex = 0;
+  int selectedIndex = -1;
   bool isPickerSelected = false;
   bool valueSelected = false;
 
@@ -569,8 +562,10 @@ class _YearPickerState extends State<YearPicker> {
                         setState(() {
                           valueSelected = true;
                           selectedIndex = index;
+                          isPickerSelected = false;
                         });
                         setState(() {});
+                        widget.onConfirmCallback(years[selectedIndex]);
                         print(selectedIndex);
                       },
                       child: Card(
@@ -591,23 +586,23 @@ class _YearPickerState extends State<YearPicker> {
                   }),
                 ),
               ),
-              Row(
-                children: [
-                  Spacer(),
-                  TextButton(
-                      onPressed: () {
-                        setState(() {
-                          isPickerSelected = false;
-                        });
-                        print(years[selectedIndex]);
-                        widget.onConfirmCallback(years[selectedIndex]);
-                      },
-                      child: Text(
-                        "Confirm",
-                        style: TextStyle(color: Colors.green),
-                      )),
-                ],
-              )
+              // Row(
+              //   children: [
+              //     Spacer(),
+              //     TextButton(
+              //         onPressed: () {
+              //           setState(() {
+              //             isPickerSelected = false;
+              //           });
+              //           print(years[selectedIndex]);
+              //           widget.onConfirmCallback(years[selectedIndex]);
+              //         },
+              //         child: Text(
+              //           "Confirm",
+              //           style: TextStyle(color: Colors.green),
+              //         )),
+              //   ],
+              // )
             ],
           ),
         ),
