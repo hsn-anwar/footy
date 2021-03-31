@@ -57,8 +57,6 @@ class _HomeScreenState extends State<HomeScreen> {
         fontSize: 16.0);
   }
 
-  final AdWidget adWidget = AdWidget(ad: myBanner);
-
   final AdListener listener = AdListener(
     // Called when an ad is successfully received.
     onAdLoaded: (Ad ad) => print('Ad loaded.'),
@@ -106,14 +104,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-    myBanner.load();
     createInterstitialAd();
     super.initState();
   }
 
   @override
   void dispose() {
-    myBanner.dispose();
     _interstitialAd?.dispose();
     super.dispose();
   }
@@ -152,16 +148,6 @@ class _HomeScreenState extends State<HomeScreen> {
               iconSize: 22.0,
             ),
           ],
-        ),
-        bottomNavigationBar: Container(
-          // height: adSize,
-          color: Colors.transparent,
-          child: Container(
-            alignment: Alignment.center,
-            child: adWidget,
-            width: myBanner.size.width.toDouble(),
-            height: myBanner.size.height.toDouble(),
-          ),
         ),
         body: Center(
           child: Container(
