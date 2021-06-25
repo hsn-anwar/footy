@@ -4,7 +4,7 @@ import 'package:footy/widgets/time_picker.dart';
 import 'package:footy/widgets/timer_button.dart';
 import 'package:logger/logger.dart';
 import 'package:circular_countdown_timer/circular_countdown_timer.dart';
-import 'package:audioplayers/audio_cache.dart';
+// import 'package:audioplayers/audio_cache.dart';
 
 import '../const.dart';
 
@@ -93,6 +93,12 @@ class _TimerScreenState extends State<TimerScreen> {
                       fontSize: SizeConfig.blockSizeHorizontal * 5.5,
                     ),
                   ),
+                  // Text(
+                  //   primaryCounterController,
+                  //   style: TextStyle(
+                  //     fontSize: SizeConfig.blockSizeHorizontal * 5.5,
+                  //   ),
+                  // ),
                   GestureDetector(
                     onTap: () {
                       if (!isPrimaryTimerRunning) {
@@ -146,7 +152,7 @@ class _TimerScreenState extends State<TimerScreen> {
               Column(
                 children: [
                   Text(
-                    'Goal keeper/player substitution'.toUpperCase(),
+                    'Game Interval'.toUpperCase(),
                     style: TextStyle(
                       fontSize: SizeConfig.blockSizeHorizontal * 5.5,
                     ),
@@ -258,15 +264,32 @@ class _TimerScreenState extends State<TimerScreen> {
 
     if (minFormKey.currentState.validate() &&
         secFormKey.currentState.validate()) {
-      setTimer(minutes, seconds, timerController);
+      int totalTime = getTotalTimeInSeconds(minutes, seconds);
+      setTimer(totalTime, timerController);
     }
   }
 
+  void setTimer(int totalTime, CountDownController timerController) {
+    // int totalTime = getTotalTimeInSeconds(minutes, seconds);
+    logger.wtf(totalTime);
+    timerController.restart(duration: totalTime);
+    timerController.pause();
+  }
+
+  int getTotalTimeInSeconds(String minutes, String seconds) {
+    logger.wtf(minutes);
+    logger.wtf(seconds);
+    logger.wtf(int.parse(minutes) * 60 + int.parse(seconds));
+    return int.parse(minutes) * 60 + int.parse(seconds);
+  }
+
+  int primaryTimerTotalTime = 0;
+  int secondaryTimerTotalTime = 0;
   void createDivisions() {
     timerDivisions.clear();
-    int primaryTimerTotalTime = getTotalTimeInSeconds(
+    primaryTimerTotalTime = getTotalTimeInSeconds(
         _primaryMinsController.value.text, _primarySecsController.value.text);
-    int secondaryTimerTotalTime = getTotalTimeInSeconds(
+    secondaryTimerTotalTime = getTotalTimeInSeconds(
         _secondaryMinsController.value.text,
         _secondarySecsController.value.text);
 
@@ -329,18 +352,6 @@ class _TimerScreenState extends State<TimerScreen> {
     }
   }
 
-  void setTimer(
-      String minutes, String seconds, CountDownController timerController) {
-    int totalTime = getTotalTimeInSeconds(minutes, seconds);
-
-    timerController.restart(duration: totalTime);
-    timerController.pause();
-  }
-
-  int getTotalTimeInSeconds(String minutes, String seconds) {
-    return int.parse(minutes) * 60 + int.parse(seconds);
-  }
-
   void timerValueChangeListener(Duration timeElapsed) {}
 
   void handleTimerOnStart() {
@@ -358,14 +369,35 @@ class _TimerScreenState extends State<TimerScreen> {
     if (isPrimarySet && isSecondarySet) {
       createDivisions();
 
-      primaryCounterController.start();
-      secondaryCounterController.restart(
-          duration: timerDivisions[currentCycle]);
-      logger.wtf(currentCycle);
-      setState(() {
-        isPrimaryTimerRunning = true;
-        isSecondaryTimerRunning = true;
-      });
+      if (primaryTimerTotalTime < secondaryTimerTotalTime) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Row(
+            children: [
+              Icon(
+                Icons.error_outline_outlined,
+                color: Colors.yellow,
+              ),
+              SizedBox(
+                width: SizeConfig.blockSizeHorizontal * 2,
+              ),
+              Text(
+                "Divisions should be less than duration",
+                maxLines: 2,
+              ),
+            ],
+          ),
+        ));
+      } else {
+        primaryCounterController.start();
+        secondaryCounterController.restart(
+            duration: timerDivisions[currentCycle]);
+        logger.wtf(currentCycle);
+        setState(() {
+          isPrimaryTimerRunning = true;
+          isSecondaryTimerRunning = true;
+        });
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         behavior: SnackBarBehavior.floating,
@@ -419,8 +451,8 @@ class _TimerScreenState extends State<TimerScreen> {
   }
 
   void playAudio() {
-    final player = AudioCache();
-    player.play('referee_whistle.mp3');
+    // final player = AudioCache();
+    // player.play('referee_whistle.mp3');
   }
 }
 
@@ -451,7 +483,7 @@ class CountDownTimer extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
       child: CircularCountDownTimer(
-        duration: 0,
+        duration: 10,
         initialDuration: 0,
         controller: this.timerController,
         width: SizeConfig.blockSizeHorizontal * 40,
@@ -465,9 +497,7 @@ class CountDownTimer extends StatelessWidget {
         strokeWidth: this.strokeWidth ?? 10.0,
         strokeCap: StrokeCap.round,
         textStyle: kTimerTextStyle.copyWith(fontSize: this.fontSize ?? 33),
-        textFormat: this.secondsOnly
-            ? CountdownTextFormat.SS
-            : CountdownTextFormat.MM_SS,
+        textFormat: CountdownTextFormat.HH_MM_SS,
         isReverse: true,
         isReverseAnimation: false,
         isTimerTextShown: true,
